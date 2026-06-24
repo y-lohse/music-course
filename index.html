@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f1115">
+<title>Theory — Interactive Music Theory</title>
+<style>
+:root{
+  --bg:#0f1115; --bg2:#171a21; --bg3:#1f2430; --line:#2a3040;
+  --txt:#e7eaf0; --dim:#9aa3b2; --faint:#6b7382;
+  --accent:#6ea8ff; --accent2:#7ee0c0; --warn:#ffcf6e; --bad:#ff7a8a; --good:#7ee0a0;
+  --root:#ff7a8a; --hi:#6ea8ff; --hi2:#7ee0c0; --hi3:#ffcf6e;
+  --r:14px; --r2:10px;
+  font-size:16px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  line-height:1.55; overscroll-behavior-y:contain;}
+body{padding-bottom:90px;}
+a{color:var(--accent);}
+h1,h2,h3{line-height:1.25;font-weight:700;}
+.wrap{max-width:680px;margin:0 auto;padding:0 16px;}
+
+/* Top bar */
+header{position:sticky;top:0;z-index:50;background:rgba(15,17,21,.86);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.bar{display:flex;align-items:center;gap:12px;height:54px;}
+.bar .back{font-size:1.5rem;line-height:1;background:none;border:none;color:var(--txt);
+  cursor:pointer;padding:6px 4px;display:none;}
+.bar .ttl{font-weight:700;font-size:1.02rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar .brand{font-weight:800;letter-spacing:.5px;}
+.bar .brand b{color:var(--accent);}
+.bar .pct{font-size:.8rem;color:var(--dim);background:var(--bg3);padding:4px 9px;border-radius:20px;}
+
+/* Home */
+.hero{padding:26px 0 8px;}
+.hero h1{font-size:1.7rem;margin:0 0 6px;}
+.hero p{color:var(--dim);margin:0;}
+.track-h{font-size:.78rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--faint);
+  margin:26px 0 10px;font-weight:700;}
+.mod{display:flex;align-items:center;gap:14px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r);padding:15px 16px;margin-bottom:12px;cursor:pointer;
+  transition:transform .08s ease,border-color .15s;}
+.mod:active{transform:scale(.985);}
+.mod.locked{opacity:.5;}
+.mod .num{width:42px;height:42px;flex:none;border-radius:12px;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--accent);font-size:1.1rem;}
+.mod.done .num{background:var(--good);color:#06210f;}
+.mod .mi{flex:1;min-width:0;}
+.mod .mi h3{margin:0;font-size:1.02rem;}
+.mod .mi p{margin:2px 0 0;color:var(--dim);font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mbar{height:5px;background:var(--bg3);border-radius:5px;margin-top:8px;overflow:hidden;}
+.mbar i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .4s;}
+.mod.done .mbar i{background:var(--good);}
+.chev{color:var(--faint);font-size:1.2rem;}
+
+/* Lesson list within module */
+.lesson-row{display:flex;align-items:center;gap:13px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r2);padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:transform .08s;}
+.lesson-row:active{transform:scale(.985);}
+.lesson-row .dot{width:24px;height:24px;flex:none;border-radius:50%;border:2px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:.8rem;color:var(--faint);}
+.lesson-row.done .dot{background:var(--good);border-color:var(--good);color:#06210f;}
+.lesson-row .lt{flex:1;}
+.lesson-row .lt b{font-weight:600;font-size:.97rem;}
+.lesson-row .lt span{display:block;color:var(--faint);font-size:.8rem;}
+.kind-quiz .dot{border-style:dashed;}
+
+/* Lesson content */
+.lesson{padding:18px 0 40px;}
+.lesson h2{font-size:1.45rem;margin:6px 0 4px;}
+.lesson .eyebrow{color:var(--accent);font-weight:700;font-size:.78rem;letter-spacing:1px;text-transform:uppercase;}
+.lesson p{margin:14px 0;color:#d4dae6;}
+.lesson p b,.lesson li b{color:var(--txt);}
+.lesson h3{font-size:1.13rem;margin:26px 0 6px;}
+.lesson ul{margin:12px 0;padding-left:20px;color:#d4dae6;}
+.lesson li{margin:6px 0;}
+.term{color:var(--accent2);font-weight:600;border-bottom:1px dotted var(--faint);}
+.callout{background:var(--bg2);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:10px;padding:13px 15px;margin:18px 0;color:#d4dae6;font-size:.94rem;}
+.callout.phys{border-left-color:var(--hi2);}
+.callout.code{border-left-color:var(--warn);font-family:ui-monospace,Menlo,monospace;font-size:.85rem;}
+.callout b{color:var(--txt);}
+.widget{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px 14px;margin:20px 0;}
+.widget .wlabel{font-size:.8rem;color:var(--dim);margin-bottom:12px;text-align:center;}
+.widget .whint{font-size:.78rem;color:var(--faint);margin-top:10px;text-align:center;}
+
+/* Buttons / chips */
+.btn{background:var(--accent);color:#08111f;border:none;border-radius:10px;padding:11px 18px;
+  font-weight:700;font-size:.95rem;cursor:pointer;transition:transform .08s,opacity .15s;}
+.btn:active{transform:scale(.96);}
+.btn.sec{background:var(--bg3);color:var(--txt);}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--txt);}
+.btn:disabled{opacity:.4;cursor:default;}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:6px 0;}
+.chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0;}
+.chip{background:var(--bg3);border:1px solid var(--line);color:var(--txt);border-radius:20px;
+  padding:8px 14px;font-size:.9rem;cursor:pointer;font-weight:600;transition:transform .08s;}
+.chip:active{transform:scale(.94);}
+.chip.on{background:var(--accent);color:#08111f;border-color:var(--accent);}
+.chip.on2{background:var(--accent2);color:#06251c;border-color:var(--accent2);}
+
+/* Quiz */
+.quiz{margin:6px 0;}
+.qcard{background:var(--bg2);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px;}
+.qprog{font-size:.78rem;color:var(--faint);margin-bottom:6px;}
+.qbar{height:5px;background:var(--bg3);border-radius:5px;margin-bottom:16px;overflow:hidden;}
+.qbar i{display:block;height:100%;background:var(--accent2);transition:width .3s;}
+.qq{font-size:1.12rem;font-weight:600;margin-bottom:6px;}
+.qsub{color:var(--dim);font-size:.88rem;margin-bottom:14px;}
+.opt{display:block;width:100%;text-align:left;background:var(--bg3);border:1.5px solid var(--line);
+  color:var(--txt);border-radius:11px;padding:13px 15px;margin-bottom:10px;font-size:.97rem;cursor:pointer;
+  transition:transform .06s,border-color .15s,background .15s;}
+.opt:active{transform:scale(.99);}
+.opt.correct{border-color:var(--good);background:rgba(126,224,160,.12);}
+.opt.wrong{border-color:var(--bad);background:rgba(255,122,138,.12);}
+.opt.dim{opacity:.5;}
+.feedback{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:.92rem;display:none;}
+.feedback.show{display:block;}
+.feedback.ok{background:rgba(126,224,160,.1);border:1px solid var(--good);color:#bff0d0;}
+.feedback.no{background:rgba(255,122,138,.1);border:1px solid var(--bad);color:#ffd0d6;}
+.result{text-align:center;padding:20px 10px;}
+.result .big{font-size:2.6rem;font-weight:800;}
+.result .lbl{color:var(--dim);}
+
+/* Footer nav */
+.fnav{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.92);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:50;}
+.fnav .wrap{display:flex;gap:10px;}
+.fnav .btn{flex:1;text-align:center;}
+
+/* SVG widgets */
+svg{display:block;width:100%;height:auto;touch-action:manipulation;}
+.pkey{cursor:pointer;}
+.note-pop{position:fixed;background:var(--accent);color:#08111f;font-weight:800;padding:6px 12px;
+  border-radius:8px;font-size:.95rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:99;}
+.tcell{cursor:pointer;}
+.scrolltip{font-size:.75rem;color:var(--faint);text-align:center;margin-top:6px;}
+.hidden{display:none!important;}
+.fade{animation:fade .35s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+</style>
+</head>
+<body>
+<header><div class="wrap bar">
+  <button class="back" id="backBtn">‹</button>
+  <div class="ttl" id="barTitle"><span class="brand">THEORY<b>.</b></span></div>
+  <div class="pct" id="barPct">0%</div>
+</div></header>
+
+<main class="wrap" id="app"></main>
+
+<div class="fnav hidden" id="fnav"><div class="wrap" id="fnavInner"></div></div>
+<div class="note-pop" id="notePop"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   AUDIO ENGINE  — Web Audio API, no external files
+   ============================================================ */
+const Audio_ = (()=>{
+  let ctx=null;
+  function ac(){ if(!ctx) ctx=new (window.AudioContext||window.webkitAudioContext)();
+    if(ctx.state==='suspended') ctx.resume(); return ctx; }
+  // midi -> frequency
+  function freq(m){ return 440*Math.pow(2,(m-69)/12); }
+  function tone(m,t0,dur,gainMul=1,type='triangle'){
+    const c=ac();
+    const o=c.createOscillator(), g=c.createGain();
+    const o2=c.createOscillator(), g2=c.createGain();
+    o.type=type; o.frequency.value=freq(m);
+    o2.type='sine'; o2.frequency.value=freq(m); // body
+    const peak=0.22*gainMul;
+    g.gain.setValueAtTime(0,t0);
+    g.gain.linearRampToValueAtTime(peak,t0+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    g2.gain.setValueAtTime(0,t0);
+    g2.gain.linearRampToValueAtTime(peak*0.6,t0+0.012);
+    g2.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g).connect(c.destination);
+    o2.connect(g2).connect(c.destination);
+    o.start(t0); o.stop(t0+dur+0.05);
+    o2.start(t0); o2.stop(t0+dur+0.05);
+  }
+  return {
+    note(m,dur=0.8){ const c=ac(); tone(m,c.currentTime,dur); },
+    chord(arr,dur=1.2){ const c=ac(); arr.forEach(m=>tone(m,c.currentTime,dur,0.8)); },
+    seq(arr,step=0.55,dur=0.5){ const c=ac(); arr.forEach((m,i)=>tone(m,c.currentTime+i*step,dur)); },
+    interval(a,b,dur=0.7,gap=0.6){ const c=ac(); tone(a,c.currentTime,dur); tone(b,c.currentTime+gap,dur);
+      tone(a,c.currentTime+gap*2,dur,0.8); tone(b,c.currentTime+gap*2,dur,0.8); },
+    // schedule a list of chords (each chord = array of midi), one per step
+    progression(chords,step=1.0,dur=0.92){ const c=ac(); const t=c.currentTime+0.04;
+      chords.forEach((ch,i)=>ch.forEach(m=>tone(m,t+i*step,dur,0.6))); },
+    // arpeggiate a chord then play it as a block
+    arpThenBlock(arr,astep=0.18){ const c=ac(); const t=c.currentTime+0.03;
+      arr.forEach((m,i)=>tone(m,t+i*astep,0.5,0.8));
+      const tb=t+arr.length*astep+0.15; arr.forEach(m=>tone(m,tb,1.1,0.6)); },
+    // flexible layered events: [{m,t,d,g,type}]
+    layer(events){ const c=ac(); const t=c.currentTime+0.04;
+      events.forEach(e=>tone(e.m,t+(e.t||0),e.d||0.5,e.g||0.7,e.type||'triangle')); },
+    // metronome / rhythm: hits=[{b:beatPosition, accent:bool}], bpm tempo
+    pattern(hits,bpm=100){ const c=ac(); const spb=60/bpm; const t0=c.currentTime+0.06;
+      hits.forEach(h=>{ const t=t0+h.b*spb; const o=c.createOscillator(),g=c.createGain();
+        o.type='square'; o.frequency.value=h.accent?2200:1500;
+        const pk=h.accent?0.32:0.15; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(pk,t+0.002);
+        g.gain.exponentialRampToValueAtTime(0.0001,t+0.085);
+        o.connect(g).connect(c.destination); o.start(t); o.stop(t+0.12); }); },
+    freq
+  };
+})();
+
+/* ============================================================
+   MUSIC THEORY HELPERS
+   ============================================================ */
+const SHARP=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const FLAT =['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+const NAT = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function pcName(pc,pref='sharp'){ return (pref==='flat'?FLAT:SHARP)[((pc%12)+12)%12]; }
+function midiName(m){ return SHARP[m%12]+ (Math.floor(m/12)-1); }
+const C4=60; // middle C
+// interval data: semitones -> {short,name,quality}
+const INTERVALS=[
+ {st:0, sh:'P1', name:'Perfect unison', col:'consonant'},
+ {st:1, sh:'m2', name:'Minor 2nd', col:'dissonant'},
+ {st:2, sh:'M2', name:'Major 2nd', col:'dissonant'},
+ {st:3, sh:'m3', name:'Minor 3rd', col:'consonant'},
+ {st:4, sh:'M3', name:'Major 3rd', col:'consonant'},
+ {st:5, sh:'P4', name:'Perfect 4th', col:'perfect'},
+ {st:6, sh:'TT', name:'Tritone', col:'dissonant'},
+ {st:7, sh:'P5', name:'Perfect 5th', col:'perfect'},
+ {st:8, sh:'m6', name:'Minor 6th', col:'consonant'},
+ {st:9, sh:'M6', name:'Major 6th', col:'consonant'},
+ {st:10,sh:'m7', name:'Minor 7th', col:'dissonant'},
+ {st:11,sh:'M7', name:'Major 7th', col:'dissonant'},
+ {st:12,sh:'P8', name:'Perfect octave', col:'consonant'},
+];
+const SCALES={
+  major:        {name:'Major', steps:[2,2,1,2,2,2,1]},
+  natminor:     {name:'Natural minor', steps:[2,1,2,2,1,2,2]},
+  harmonicminor:{name:'Harmonic minor', steps:[2,1,2,2,1,3,1]},
+  melodicminor: {name:'Melodic minor', steps:[2,1,2,2,2,2,1]},
+};
+function buildScale(rootMidi, key){ const s=SCALES[key].steps; const out=[rootMidi]; let m=rootMidi;
+  for(const st of s){ m+=st; out.push(m);} return out; } // 8 notes incl octave
+// Circle of fifths order of major keys (sharps then flats)
+const CIRCLE=['C','G','D','A','E','B','Gb','Db','Ab','Eb','Bb','F'];
+const KEYSIG={C:0,G:1,D:2,A:3,E:4,B:5,'Gb':6,'Db':5,'Ab':4,'Eb':3,'Bb':2,'F':1};
+const KEYSIGTYPE={C:'',G:'#',D:'#',A:'#',E:'#',B:'#','Gb':'b','Db':'b','Ab':'b','Eb':'b','Bb':'b','F':'b'};
+
+// --- Chords ---
+const CHORDS={
+ maj: {lab:'Major',      iv:[0,4,7],     sym:''},
+ min: {lab:'Minor',      iv:[0,3,7],     sym:'m'},
+ dim: {lab:'Diminished', iv:[0,3,6],     sym:'°'},
+ aug: {lab:'Augmented',  iv:[0,4,8],     sym:'+'},
+ maj7:{lab:'Major 7th',  iv:[0,4,7,11],  sym:'maj7'},
+ min7:{lab:'Minor 7th',  iv:[0,3,7,10],  sym:'m7'},
+ dom7:{lab:'Dominant 7th',iv:[0,4,7,10], sym:'7'},
+ m7b5:{lab:'Half-dim 7th',iv:[0,3,6,10], sym:'m7♭5'},
+ dim7:{lab:'Diminished 7th',iv:[0,3,6,9],sym:'°7'},
+ add9:{lab:'Add 9',      iv:[0,4,7,14],  sym:'add9'},
+ dom9:{lab:'Dominant 9th',iv:[0,4,7,10,14],sym:'9'},
+};
+function buildChord(rootMidi,type){ return CHORDS[type].iv.map(i=>rootMidi+i); }
+function chordName(rootPc,type,pref='sharp'){ return pcName(rootPc,pref)+CHORDS[type].sym; }
+
+// Diatonic qualities (triads) per scale degree
+const MAJ_DIATONIC=[{rn:'I',q:'maj'},{rn:'ii',q:'min'},{rn:'iii',q:'min'},{rn:'IV',q:'maj'},{rn:'V',q:'maj'},{rn:'vi',q:'min'},{rn:'vii°',q:'dim'}];
+const MIN_DIATONIC=[{rn:'i',q:'min'},{rn:'ii°',q:'dim'},{rn:'III',q:'maj'},{rn:'iv',q:'min'},{rn:'v',q:'min'},{rn:'VI',q:'maj'},{rn:'VII',q:'maj'}];
+// two-octave scale for stacking thirds
+function scale2oct(rootMidi,key){ const one=buildScale(rootMidi,key); return one.concat(one.slice(1).map(m=>m+12)); }
+function diatonicTriad(rootMidi,key,degIdx){ const s=scale2oct(rootMidi,key); return [s[degIdx],s[degIdx+2],s[degIdx+4]]; }
+function diatonicSeventh(rootMidi,key,degIdx){ const s=scale2oct(rootMidi,key); return [s[degIdx],s[degIdx+2],s[degIdx+4],s[degIdx+6]]; }
+
+// --- Modes (rotations of the major scale) ---
+const MODES=[
+ {name:'Ionian',  alias:'Major',         rot:0, char:'—',     mood:'Bright, stable — the default major sound'},
+ {name:'Dorian',  alias:'',              rot:1, char:'♮6',    mood:'Minor but hopeful; jazz, funk, Celtic'},
+ {name:'Phrygian',alias:'',              rot:2, char:'♭2',    mood:'Dark, Spanish/flamenco, metal tension'},
+ {name:'Lydian',  alias:'',              rot:3, char:'♯4',    mood:'Dreamy, floating, film-score wonder'},
+ {name:'Mixolydian',alias:'',            rot:4, char:'♭7',    mood:'Major but bluesy; rock, folk, dominant feel'},
+ {name:'Aeolian', alias:'Natural minor', rot:5, char:'♭6',    mood:'Plain, sad minor'},
+ {name:'Locrian', alias:'',              rot:6, char:'♭2 ♭5', mood:'Unstable, dissonant — rarely a home base'},
+];
+function buildMode(rootMidi,rot){ const st=SCALES.major.steps; const rs=st.slice(rot).concat(st.slice(0,rot));
+  const out=[rootMidi]; let m=rootMidi; for(const s of rs){ m+=s; out.push(m);} return out; }
+
+/* ============================================================
+   PROGRESS (localStorage)
+   ============================================================ */
+const Progress=(()=>{
+  const KEY='theory_progress_v1';
+  let data=JSON.parse(localStorage.getItem(KEY)||'{}');
+  function save(){ localStorage.setItem(KEY,JSON.stringify(data)); }
+  return {
+    done(id){ return !!data[id]; },
+    mark(id,v=true){ data[id]=v?{t:Date.now()}:undefined; if(!v) delete data[id]; save(); },
+    score(id,s){ data[id]={t:Date.now(),score:s}; save(); },
+    get(id){ return data[id]; },
+    raw(){ return data; }
+  };
+})();
+
+/* ============================================================
+   WIDGET FACTORIES
+   ============================================================ */
+let popTimer=null;
+function showPop(text,x,y){ const p=document.getElementById('notePop');
+  p.textContent=text; p.style.left=(x)+'px'; p.style.top=(y-46)+'px';
+  p.style.transform='translateX(-50%)'; p.style.opacity='1';
+  clearTimeout(popTimer); popTimer=setTimeout(()=>p.style.opacity='0',700); }
+
+/* ---- PIANO KEYBOARD ----
+   opts: {low, high, highlight:{midi:colorKey}, labels:bool, root:midi, onClick} */
+function Piano(opts={}){
+  const low=opts.low!=null?opts.low:60, high=opts.high!=null?opts.high:72;
+  const hi=opts.highlight||{}; const labels=opts.labels!==false;
+  const whiteW=42, whiteH=150, blackW=27, blackH=95;
+  const whites=[]; for(let m=low;m<=high;m++){ if([1,3,6,8,10].indexOf(m%12)<0) whites.push(m); }
+  const W=whites.length*whiteW;
+  const colMap={root:'var(--root)',hi:'var(--hi)',hi2:'var(--hi2)',hi3:'var(--hi3)'};
+  const xOf={}; whites.forEach((m,i)=>xOf[m]=i*whiteW);
+  let svg=`<svg viewBox="0 0 ${W} ${whiteH+4}" xmlns="http://www.w3.org/2000/svg">`;
+  // white keys
+  whites.forEach(m=>{
+    const c=hi[m]?colMap[hi[m]]:'#f4f6fa';
+    svg+=`<rect class="pkey" data-m="${m}" x="${xOf[m]+1}" y="1" width="${whiteW-2}" height="${whiteH}" rx="5"
+      fill="${c}" stroke="#0a0c10" stroke-width="1.5"/>`;
+    if(labels){ const lc=hi[m]?'#0a0c10':'#6b7382';
+      svg+=`<text x="${xOf[m]+whiteW/2}" y="${whiteH-12}" text-anchor="middle" font-size="12" font-weight="700" fill="${lc}" pointer-events="none">${SHARP[m%12]}</text>`;}
+  });
+  // black keys
+  for(let m=low;m<=high;m++){ if([1,3,6,8,10].indexOf(m%12)>=0){
+    // position: between the white key below and the one above
+    const wb=m-1; // white below (since black is always above a white that is m-1 for these pcs)
+    let bx = xOf[wb]!=null ? xOf[wb]+whiteW-blackW/2 : null;
+    if(bx==null) continue;
+    const c=hi[m]?colMap[hi[m]]:'#13161c';
+    svg+=`<rect class="pkey" data-m="${m}" x="${bx}" y="1" width="${blackW}" height="${blackH}" rx="4"
+      fill="${c}" stroke="#0a0c10" stroke-width="1.5"/>`;
+    if(labels&&hi[m]){ svg+=`<text x="${bx+blackW/2}" y="${blackH-10}" text-anchor="middle" font-size="9" font-weight="700" fill="#0a0c10" pointer-events="none">${SHARP[m%12]}</text>`;}
+  }}
+  svg+='</svg>';
+  const div=document.createElement('div'); div.innerHTML=svg;
+  const el=div.firstChild;
+  el.querySelectorAll('.pkey').forEach(k=>{
+    k.addEventListener('click',ev=>{
+      const m=+k.dataset.m; Audio_.note(m,0.9);
+      const r=k.getBoundingClientRect(); showPop(SHARP[m%12],r.left+r.width/2,r.top);
+      if(opts.onClick) opts.onClick(m);
+    });
+  });
+  return el;
+}
+
+/* ---- PITCH CLOCK ---- instrument-agnostic chromatic circle
+   opts:{highlight:{pc:colorKey}, shape:[pc...] (draw polygon), root:pc, labels, onClick, pref} */
+function Clock(opts={}){
+  const size=260, cx=size/2, cy=size/2, R=98, r=24;
+  const hi=opts.highlight||{}; const pref=opts.pref||'sharp';
+  const colMap={root:'var(--root)',hi:'var(--hi)',hi2:'var(--hi2)',hi3:'var(--hi3)'};
+  const ang=pc=> (pc/12)*2*Math.PI - Math.PI/2;
+  const px=pc=>cx+R*Math.cos(ang(pc)), py=pc=>cy+R*Math.sin(ang(pc));
+  let svg=`<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+  svg+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--line)" stroke-width="1.5"/>`;
+  // shape polygon
+  if(opts.shape&&opts.shape.length>1){
+    let pts=opts.shape.map(pc=>`${px(pc).toFixed(1)},${py(pc).toFixed(1)}`).join(' ');
+    svg+=`<polygon points="${pts}" fill="rgba(110,168,255,.13)" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>`;
+  }
+  for(let pc=0;pc<12;pc++){
+    const x=px(pc),y=py(pc);
+    const on=hi[pc];
+    const fill=on?colMap[on]:'var(--bg3)';
+    const tc=on?'#0a0c10':'var(--dim)';
+    svg+=`<g class="tcell" data-pc="${pc}">
+      <circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="${x}" y="${y+4.5}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${tc}" pointer-events="none">${pcName(pc,pref)}</text></g>`;
+  }
+  svg+='</svg>';
+  const div=document.createElement('div'); div.innerHTML=svg; const el=div.firstChild;
+  el.style.maxWidth='300px'; el.style.margin='0 auto';
+  el.querySelectorAll('.tcell').forEach(g=>{
+    g.addEventListener('click',()=>{ const pc=+g.dataset.pc; Audio_.note(60+pc,0.9);
+      if(opts.onClick) opts.onClick(pc); });
+  });
+  return el;
+}
+
+/* play button helper */
+function PlayBtn(label,fn,cls=''){ const b=document.createElement('button');
+  b.className='btn '+cls; b.innerHTML='▶ '+label; b.onclick=()=>fn(b); return b; }
+
+/* ============================================================
+   BLOCK RENDERER  — turns lesson data into DOM
+   ============================================================ */
+function el(tag,cls,html){ const e=document.createElement(tag); if(cls)e.className=cls;
+  if(html!=null)e.innerHTML=html; return e; }
+
+function renderBlock(b){
+  switch(b.t){
+    case 'h': return el('h3',null,b.x);
+    case 'p': return el('p',null,b.x);
+    case 'ul':{ const u=el('ul'); b.x.forEach(li=>u.appendChild(el('li',null,li))); return u; }
+    case 'note': return el('div','callout'+(b.k?' '+b.k:''),b.x);
+    case 'widget':{
+      const w=el('div','widget');
+      if(b.label) w.appendChild(el('div','wlabel',b.label));
+      const body=b.build(); if(body) w.appendChild(body);
+      if(b.hint) w.appendChild(el('div','whint',b.hint));
+      return w;
+    }
+    case 'custom': return b.build();
+    default: return el('p',null,b.x||'');
+  }
+}
+
+/* ============================================================
+   QUIZ ENGINE
+   ============================================================ */
+function renderQuiz(quiz, lessonId, onPass){
+  const wrap=el('div','quiz'); let i=0, correct=0, answered=false;
+  const card=el('div','qcard'); wrap.appendChild(card);
+  function draw(){
+    answered=false; card.innerHTML='';
+    if(i>=quiz.questions.length){ finish(); return; }
+    const q=quiz.questions[i];
+    card.appendChild(el('div','qprog',`Question ${i+1} of ${quiz.questions.length}`));
+    const bar=el('div','qbar'); bar.appendChild(el('i')); card.appendChild(bar);
+    bar.firstChild.style.width=(i/quiz.questions.length*100)+'%';
+    card.appendChild(el('div','qq',q.q));
+    if(q.sub) card.appendChild(el('div','qsub',q.sub));
+    if(q.build){ const extra=q.build(); if(extra) card.appendChild(extra); }
+    const opts=[];
+    q.options.forEach((opt,idx)=>{
+      const o=el('button','opt',opt); card.appendChild(o); opts.push(o);
+      o.onclick=()=>{
+        if(answered) return; answered=true;
+        const isC=idx===q.answer;
+        if(isC){ correct++; o.classList.add('correct'); }
+        else { o.classList.add('wrong'); opts[q.answer].classList.add('correct'); }
+        opts.forEach((oo,j)=>{ if(j!==idx&&j!==q.answer) oo.classList.add('dim'); oo.disabled=true; });
+        const fb=el('div','feedback show '+(isC?'ok':'no'),
+          (isC?'<b>Correct.</b> ':'<b>Not quite.</b> ')+(q.why||''));
+        card.appendChild(fb);
+        const nb=el('button','btn','Next →'); nb.style.marginTop='12px';
+        nb.onclick=()=>{ i++; draw(); }; card.appendChild(nb);
+      };
+    });
+  }
+  function finish(){
+    const pct=Math.round(correct/quiz.questions.length*100);
+    const passed=pct>=70;
+    Progress.score(lessonId,pct);
+    card.innerHTML='';
+    const r=el('div','result');
+    r.appendChild(el('div','big '+(passed?'':'') , pct+'%'));
+    r.appendChild(el('div','lbl',`${correct} of ${quiz.questions.length} correct`));
+    r.appendChild(el('p',null, passed
+      ? '🎉 Nicely done — you\'ve got this material.'
+      : 'Worth another pass. Review the lesson and try again — you need 70% to mark it complete.'));
+    const row=el('div','btnrow');
+    const again=el('button','btn sec','Try again'); again.onclick=()=>{i=0;correct=0;draw();};
+    row.appendChild(again);
+    if(passed){ const cont=el('button','btn','Continue'); cont.onclick=()=>onPass&&onPass(); row.appendChild(cont); }
+    r.appendChild(row); card.appendChild(r);
+    if(passed) onPass&&onPass(true);
+  }
+  draw();
+  return wrap;
+}
+
+/* ============================================================
+   ROUTER / VIEWS
+   ============================================================ */
+const App=document.getElementById('app');
+const Bar=document.getElementById('barTitle');
+const BackBtn=document.getElementById('backBtn');
+const Fnav=document.getElementById('fnav');
+const FnavInner=document.getElementById('fnavInner');
+let route={view:'home'};
+
+function totalLessons(){ let n=0; COURSE.forEach(m=>n+=m.lessons.length); return n; }
+function doneCount(){ let n=0; COURSE.forEach(m=>m.lessons.forEach(l=>{ if(Progress.done(l.id))n++;})); return n; }
+function moduleDone(m){ return m.lessons.every(l=>Progress.done(l.id)); }
+function moduleProg(m){ const d=m.lessons.filter(l=>Progress.done(l.id)).length; return d/m.lessons.length; }
+function updatePct(){ document.getElementById('barPct').textContent=Math.round(doneCount()/totalLessons()*100)+'%'; }
+
+function go(r){ route=r; window.scrollTo(0,0); render();
+  history.replaceState(r,'', '#'+(r.view==='home'?'':r.view+(r.m!=null?'-'+r.m:'')+(r.l!=null?'-'+r.l:''))); }
+
+function render(){
+  updatePct();
+  App.innerHTML=''; App.className='wrap fade';
+  Fnav.classList.add('hidden');
+  if(route.view==='home'){ BackBtn.style.display='none'; renderHome(); }
+  else if(route.view==='module'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'home'}); renderModule(route.m); }
+  else if(route.view==='lesson'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'module',m:route.m}); renderLesson(route.m,route.l); }
+}
+
+function renderHome(){
+  Bar.innerHTML='<span class="brand">THEORY<b>.</b></span>';
+  const hero=el('div','hero');
+  hero.appendChild(el('h1','','Music Theory'));
+  hero.appendChild(el('p','','The recipes behind music — sounds, shapes, and the logic underneath. Tap any tile to begin.'));
+  App.appendChild(hero);
+  let curTrack=null;
+  COURSE.forEach((m,mi)=>{
+    if(m.track!==curTrack){ curTrack=m.track; App.appendChild(el('div','track-h',curTrack)); }
+    const done=moduleDone(m), prog=moduleProg(m);
+    const row=el('div','mod'+(done?' done':''));
+    row.innerHTML=`<div class="num">${done?'✓':m.n}</div>
+      <div class="mi"><h3>${m.title}</h3><p>${m.blurb}</p>
+        <div class="mbar"><i style="width:${prog*100}%"></i></div></div>
+      <div class="chev">›</div>`;
+    row.onclick=()=>go({view:'module',m:mi});
+    App.appendChild(row);
+  });
+  const foot=el('div'); foot.style.cssText='color:var(--faint);font-size:.8rem;text-align:center;margin:24px 0;';
+  foot.innerHTML='Progress is saved on this device. Modules 4–11 coming next.';
+  App.appendChild(foot);
+}
+
+function renderModule(mi){
+  const m=COURSE[mi]; Bar.innerHTML=`Module ${m.n}`;
+  const h=el('div','hero'); h.appendChild(el('h1','',m.title));
+  h.appendChild(el('p','',m.intro)); App.appendChild(h);
+  const lh=el('div','track-h','Lessons'); App.appendChild(lh);
+  m.lessons.forEach((l,li)=>{
+    const done=Progress.done(l.id);
+    const row=el('div','lesson-row'+(done?' done':'')+(l.quiz?' kind-quiz':''));
+    const sc=Progress.get(l.id);
+    row.innerHTML=`<div class="dot">${done?'✓':(li+1)}</div>
+      <div class="lt"><b>${l.title}</b><span>${l.quiz?'Quiz':'Lesson'}${sc&&sc.score!=null?' · '+sc.score+'%':''} · ${l.mins||3} min</span></div>
+      <div class="chev">›</div>`;
+    row.onclick=()=>go({view:'lesson',m:mi,l:li});
+    App.appendChild(row);
+  });
+}
+
+function renderLesson(mi,li){
+  const m=COURSE[mi]; const l=m.lessons[li];
+  Bar.innerHTML=`${m.title}`;
+  const wrap=el('div','lesson');
+  wrap.appendChild(el('div','eyebrow',`Module ${m.n} · ${l.quiz?'Quiz':'Lesson '+(li+1)}`));
+  wrap.appendChild(el('h2','',l.title));
+  App.appendChild(wrap);
+
+  if(l.quiz){
+    const q=renderQuiz(l.quiz, l.id, (auto)=>{ if(auto){ Progress.mark(l.id,true); updatePct(); }
+      else { go({view:'module',m:mi}); } });
+    wrap.appendChild(q);
+    return;
+  }
+  // normal lesson
+  (l.blocks||[]).forEach(b=>{ try{ wrap.appendChild(renderBlock(b)); }catch(e){ console.error(e);} });
+
+  // footer nav: prev / mark done+next
+  Fnav.classList.remove('hidden');
+  FnavInner.innerHTML='';
+  const markBtn=el('button','btn', Progress.done(l.id)?'✓ Completed — Next →':'Mark complete →');
+  markBtn.onclick=()=>{ Progress.mark(l.id,true); updatePct();
+    if(li+1<m.lessons.length) go({view:'lesson',m:mi,l:li+1});
+    else go({view:'module',m:mi}); };
+  if(li>0){ const pv=el('button','btn ghost','‹ Prev'); pv.style.flex='0 0 auto';
+    pv.onclick=()=>go({view:'lesson',m:mi,l:li-1}); FnavInner.appendChild(pv); }
+  FnavInner.appendChild(markBtn);
+}
+
+/* boot after COURSE defined */
+window.addEventListener('load',()=>{ render(); });
+</script>
+
+<script>
+"use strict";
+/* ============================================================
+   INTERACTIVE CONTENT BUILDERS (used inside lessons)
+   ============================================================ */
+
+/* generic selectable chip row */
+function chipRow(items, sel, onSel, cls=''){ const row=el('div','chips');
+  items.forEach((it,i)=>{ const c=el('button','chip'+(cls?' '+cls:'')+(i===sel?(cls?' on2':' on'):''),it.label);
+    c.onclick=()=>{ row.querySelectorAll('.chip').forEach(x=>x.classList.remove('on','on2'));
+      c.classList.add(cls?'on2':'on'); onSel(it.val,i); }; row.appendChild(c); });
+  return row; }
+
+/* ---- Interval builder: root + interval -> show & play ---- */
+function intervalBuilder(){
+  const box=el('div'); let root=0, st=7; // C, P5
+  const display=el('div'); const info=el('div','whint');
+  const roots=[0,2,4,5,7,9,11].map(pc=>({label:SHARP[pc],val:pc}));
+  box.appendChild(el('div','wlabel','1 · Pick a starting note'));
+  box.appendChild(chipRow(roots, 0, v=>{root=v;upd();}));
+  box.appendChild(el('div','wlabel','2 · Pick an interval'));
+  const ivs=INTERVALS.slice(1).map(iv=>({label:iv.sh,val:iv.st}));
+  box.appendChild(chipRow(ivs, 6, v=>{st=v;upd();},'iv')); // default P5 (index of st7 -> in slice from st1, P5 is index 6)
+  box.appendChild(display);
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Hear it',()=>{ Audio_.interval(60+root,60+root+st); }));
+  box.appendChild(row);
+  box.appendChild(info);
+  function upd(){ const iv=INTERVALS.find(x=>x.st===st);
+    const hi={}; hi[root]='root'; hi[(root+st)%12]='hi';
+    display.innerHTML=''; const c=Clock({highlight:hi,shape:[root,(root+st)%12]}); display.appendChild(c);
+    const a=SHARP[root], b=SHARP[(root+st)%12];
+    info.innerHTML=`<b>${a} → ${b}</b> &nbsp;·&nbsp; ${iv.name} &nbsp;·&nbsp; ${st} half step${st===1?'':'s'} &nbsp;·&nbsp; <span style="color:var(--accent2)">${iv.col}</span>`;
+  }
+  upd(); return box;
+}
+
+/* ---- Half / whole step explorer ---- */
+function stepExplorer(){
+  const box=el('div'); let root=0;
+  const out=el('div','whint');
+  box.appendChild(el('div','wlabel','Pick a note, then hear a half step and a whole step up'));
+  const roots=SHARP.map((n,pc)=>({label:n,val:pc}));
+  box.appendChild(chipRow(roots,0,v=>{root=v;upd();}));
+  const disp=el('div'); box.appendChild(disp);
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Half step',()=>Audio_.seq([60+root,60+root+1],0.55,0.6),'sec'));
+  row.appendChild(PlayBtn('Whole step',()=>Audio_.seq([60+root,60+root+2],0.55,0.6),'sec'));
+  box.appendChild(row); box.appendChild(out);
+  function upd(){ const hi={}; hi[root]='root'; hi[(root+1)%12]='hi3'; hi[(root+2)%12]='hi2';
+    disp.innerHTML=''; disp.appendChild(Piano({low:Math.min(60+root,60),high:Math.max(60+root+2,72),
+      highlight:{[60+root]:'root',[60+root+1]:'hi3',[60+root+2]:'hi2'}}));
+    out.innerHTML=`<span style="color:var(--root)">${SHARP[root]}</span> · half step → <span style="color:var(--warn)">${SHARP[(root+1)%12]}</span> · whole step → <span style="color:var(--accent2)">${SHARP[(root+2)%12]}</span>`;
+  }
+  upd(); return box;
+}
+
+/* ---- Octave / frequency demo ---- */
+function octaveDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','One note, played up the octaves — same letter, double the frequency each time'));
+  const notes=[48,60,72,84]; // C3..C6
+  const list=el('div'); list.style.cssText='display:flex;flex-direction:column;gap:8px;';
+  notes.forEach(m=>{ const r=el('div'); r.style.cssText='display:flex;align-items:center;gap:12px;justify-content:center;';
+    const b=PlayBtn('C'+(Math.floor(m/12)-1),()=>Audio_.note(m,1),'sec'); b.style.minWidth='84px';
+    const f=el('span',null,Math.round(Audio_.freq(m))+' Hz'); f.style.cssText='color:var(--accent2);font-family:ui-monospace,monospace;';
+    r.appendChild(b); r.appendChild(f); list.appendChild(r); });
+  box.appendChild(list);
+  const row=el('div','btnrow'); row.style.marginTop='12px';
+  row.appendChild(PlayBtn('Play all four',()=>Audio_.seq(notes,0.6,0.55)));
+  box.appendChild(row);
+  return box;
+}
+
+/* ---- Consonance spectrum: play each interval, see its rating ---- */
+function consonanceLab(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Play each interval from C and feel where it sits'));
+  const order=[0,7,5,4,8,3,9,2,10,11,1,6]; // roughly consonant -> dissonant
+  const colors={consonant:'var(--good)',perfect:'var(--accent)',dissonant:'var(--bad)'};
+  const grid=el('div'); grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+  order.forEach(st=>{ const iv=INTERVALS.find(x=>x.st===st);
+    const b=el('button','opt'); b.style.cssText='margin:0;display:flex;justify-content:space-between;align-items:center;padding:11px 13px;';
+    b.innerHTML=`<span><b>${iv.sh}</b> · ${iv.name.replace('Perfect ','').replace(' unison','')}</span>
+      <span style="width:10px;height:10px;border-radius:50%;background:${colors[iv.col]};display:inline-block;"></span>`;
+    b.onclick=()=>Audio_.interval(60,60+st,0.65,0.5); grid.appendChild(b); });
+  box.appendChild(grid);
+  const leg=el('div','whint'); leg.innerHTML=`<span style="color:var(--good)">●</span> sweet (consonant) &nbsp; <span style="color:var(--accent)">●</span> hollow/stable (perfect) &nbsp; <span style="color:var(--bad)">●</span> tense (dissonant)`;
+  box.appendChild(leg); return box;
+}
+
+/* ---- ratio table demo ---- */
+function ratioDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Simple frequency ratios = stable sound. Tap to compare.'));
+  const data=[['Octave','2 : 1',12],['Perfect 5th','3 : 2',7],['Perfect 4th','4 : 3',5],['Major 3rd','5 : 4',4],['Minor 2nd','16 : 15',1],['Tritone','45 : 32',6]];
+  const list=el('div'); list.style.cssText='display:flex;flex-direction:column;gap:7px;';
+  data.forEach(([nm,ra,st])=>{ const r=el('button','opt'); r.style.cssText='margin:0;display:flex;justify-content:space-between;align-items:center;';
+    r.innerHTML=`<span>${nm}</span><span style="font-family:ui-monospace,monospace;color:var(--accent2)">${ra}</span>`;
+    r.onclick=()=>Audio_.chord([60,60+st],1.4); list.appendChild(r); });
+  box.appendChild(list);
+  box.appendChild(el('div','whint','Notice: the simpler the ratio, the more "fused" and restful the two notes sound together.'));
+  return box;
+}
+
+/* ---- Scale builder ---- */
+function scaleBuilder(defKey='major'){
+  const box=el('div'); let root=0, key=defKey;
+  box.appendChild(el('div','wlabel','1 · Root note'));
+  const roots=[0,2,4,5,7,9,11].map(pc=>({label:SHARP[pc],val:pc}));
+  box.appendChild(chipRow(roots,0,v=>{root=v;upd();}));
+  box.appendChild(el('div','wlabel','2 · Scale type'));
+  const types=[['major','Major'],['natminor','Natural minor'],['harmonicminor','Harmonic minor'],['melodicminor','Melodic minor']]
+    .map(([v,l])=>({label:l,val:v}));
+  const defIdx=types.findIndex(t=>t.val===defKey);
+  box.appendChild(chipRow(types,defIdx<0?0:defIdx,v=>{key=v;upd();},'iv'));
+  const disp=el('div'); box.appendChild(disp);
+  const formula=el('div','whint'); box.appendChild(formula);
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Play ascending',()=>{ const s=buildScale(60+root,key); Audio_.seq(s,0.42,0.42); }));
+  row.appendChild(PlayBtn('Descending',()=>{ const s=buildScale(60+root,key).slice().reverse(); Audio_.seq(s,0.42,0.42);},'sec'));
+  box.appendChild(row);
+  function upd(){ const midis=buildScale(60+root,key); const pcs=midis.map(m=>m%12);
+    const hi={}; pcs.forEach((pc,i)=>hi[pc]= i===0?'root':'hi');
+    disp.innerHTML=''; disp.appendChild(Clock({highlight:hi,shape:pcs.slice(0,7)}));
+    const names=midis.slice(0,7).map(m=>SHARP[m%12]).join(' · ');
+    const stepStr=SCALES[key].steps.map(s=>s===1?'H':(s===2?'W':'W+H')).join(' ');
+    formula.innerHTML=`<b>${names}</b><br><span style="color:var(--accent2)">Step pattern: ${stepStr}</span>`;
+  }
+  upd(); return box;
+}
+
+/* ---- Circle of fifths ---- */
+function circleOfFifths(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Each step clockwise adds a sharp; counter-clockwise adds a flat. Tap a key to hear its scale.'));
+  const size=300,cx=150,cy=150,R=118,r=27;
+  const ang=i=>(i/12)*2*Math.PI - Math.PI/2;
+  let svg=`<svg viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">`;
+  svg+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="var(--line)" stroke-width="1.5"/>`;
+  CIRCLE.forEach((k,i)=>{ const x=cx+R*Math.cos(ang(i)), y=cy+R*Math.sin(ang(i));
+    const sig=KEYSIG[k], typ=KEYSIGTYPE[k];
+    const label=sig===0?'0':sig+typ;
+    svg+=`<g class="tcell" data-k="${k}"><circle cx="${x}" cy="${y}" r="${r}" fill="var(--bg3)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="${x}" y="${y-2}" text-anchor="middle" font-size="14" font-weight="800" fill="var(--txt)" pointer-events="none">${k}</text>
+      <text x="${x}" y="${y+12}" text-anchor="middle" font-size="9" fill="var(--faint)" pointer-events="none">${label}</text></g>`;
+  });
+  svg+=`<text x="${cx}" y="${cy-6}" text-anchor="middle" font-size="11" fill="var(--faint)">CIRCLE OF</text>
+        <text x="${cx}" y="${cy+10}" text-anchor="middle" font-size="13" font-weight="700" fill="var(--dim)">FIFTHS</text></svg>`;
+  const d=el('div'); d.innerHTML=svg; const s=d.firstChild; s.style.maxWidth='320px'; s.style.margin='0 auto';
+  const info=el('div','whint','Tap a key.');
+  s.querySelectorAll('.tcell').forEach(g=>{ g.addEventListener('click',()=>{ const k=g.dataset.k;
+    const root=NAT[k[0]]+(k[1]==='#'?1:k[1]==='b'?-1:0); const midis=buildScale(60+((root%12)+12)%12,'major');
+    Audio_.seq(midis,0.36,0.36);
+    const sig=KEYSIG[k],typ=KEYSIGTYPE[k];
+    info.innerHTML=`<b>${k} major</b> — ${sig===0?'no sharps or flats':sig+' '+(typ==='#'?'sharp':'flat')+(sig>1?'s':'')}`;
+  });});
+  box.appendChild(s); box.appendChild(info); return box;
+}
+
+/* ---- ear-training question builder (for quizzes) ---- */
+function earQ(playFn){ const d=el('div','btnrow'); d.style.margin='0 0 4px';
+  d.appendChild(PlayBtn('Play sound',()=>playFn())); return d; }
+
+/* ---- Chord builder ---- */
+function chordBuilder(){
+  const box=el('div'); let root=0, type='maj';
+  box.appendChild(el('div','wlabel','1 · Root note'));
+  const roots=[0,2,4,5,7,9,11].map(pc=>({label:SHARP[pc],val:pc}));
+  box.appendChild(chipRow(roots,0,v=>{root=v;upd();}));
+  box.appendChild(el('div','wlabel','2 · Chord type'));
+  const types=['maj','min','dim','aug','maj7','min7','dom7'].map(t=>({label:CHORDS[t].lab,val:t}));
+  box.appendChild(chipRow(types,0,v=>{type=v;upd();},'iv'));
+  const disp=el('div'); box.appendChild(disp);
+  const info=el('div','whint'); box.appendChild(info);
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Hear chord',()=>Audio_.arpThenBlock(buildChord(60+root,type))));
+  box.appendChild(row);
+  function upd(){ const ch=buildChord(60+root,type); const pcs=ch.map(m=>m%12);
+    const hiC={}; pcs.forEach((pc,i)=>hiC[pc]=i===0?'root':'hi');
+    const top=Math.max(...ch);
+    const hiP={}; ch.forEach((m,i)=>hiP[m]=i===0?'root':'hi');
+    disp.innerHTML='';
+    disp.appendChild(Clock({highlight:hiC,shape:pcs}));
+    disp.appendChild(Piano({low:60,high:Math.max(72,top+1),highlight:hiP}));
+    const notes=ch.map(m=>SHARP[m%12]).join(' · ');
+    info.innerHTML=`<b>${chordName(root,type)}</b> = ${notes}<br><span style="color:var(--accent2)">${CHORDS[type].lab} · stack from root: ${CHORDS[type].iv.join('–')} half steps</span>`;
+  }
+  upd(); return box;
+}
+
+/* ---- Diatonic chord explorer ---- */
+function diatonicExplorer(key='major'){
+  const box=el('div'); const qual=key==='major'?MAJ_DIATONIC:MIN_DIATONIC;
+  box.appendChild(el('div','wlabel','The 7 chords that live in C '+(key==='major'?'major':'minor')+' — tap any to hear it'));
+  const grid=el('div'); grid.style.cssText='display:grid;grid-template-columns:repeat(4,1fr);gap:6px;';
+  qual.forEach((d,i)=>{ const tri=diatonicTriad(60,key,i); const rp=tri[0]%12;
+    const b=el('button','opt'); b.style.cssText='margin:0;text-align:center;padding:11px 2px;';
+    b.innerHTML=`<div style="font-weight:800;color:var(--accent)">${d.rn}</div><div style="font-size:.82rem">${SHARP[rp]}${CHORDS[d.q].sym}</div>`;
+    b.onclick=()=>Audio_.arpThenBlock(tri,0.12); grid.appendChild(b);
+  });
+  box.appendChild(grid);
+  const row=el('div','btnrow'); row.style.marginTop='10px';
+  row.appendChild(PlayBtn('Play all 7 up the scale',()=>Audio_.progression(qual.map((d,i)=>diatonicTriad(60,key,i)),0.66,0.6)));
+  box.appendChild(row);
+  if(key==='major') box.appendChild(el('div','whint','Quality pattern in major: <b>I ii iii IV V vi vii°</b> — maj, min, min, maj, maj, min, dim. The same pattern in every key.'));
+  return box;
+}
+
+/* ---- Progression player ---- */
+function progressionPlayer(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Famous progressions in C major — tap to hear why they work'));
+  const P=[
+   {n:'I – IV – V – I',degs:[0,3,4,0],note:'The cornerstone. Home → away → tension → home.'},
+   {n:'I – V – vi – IV',degs:[0,4,5,3],note:'The "4-chord song" — thousands of pop hits live here.'},
+   {n:'ii – V – I',degs:[1,4,0],note:'The engine of jazz; the strongest possible pull back home.'},
+   {n:'I – vi – IV – V',degs:[0,5,3,4],note:"50s doo-wop — \"Stand By Me\", \"Earth Angel\"."},
+   {n:'vi – IV – I – V',degs:[5,3,0,4],note:'Moody modern pop; starts on the minor vi for a darker open.'},
+  ];
+  const info=el('div','whint','Tap a progression.');
+  P.forEach(p=>{ const b=el('button','opt'); b.style.cssText='margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;';
+    b.innerHTML=`<span style="font-weight:700">${p.n}</span><span style="color:var(--accent)">▶</span>`;
+    b.onclick=()=>{ Audio_.progression(p.degs.map(d=>diatonicTriad(60,'major',d)),0.85,0.78); info.innerHTML=p.note; };
+    box.appendChild(b); });
+  box.appendChild(info); return box;
+}
+
+/* ---- Cadence lab ---- */
+function cadenceLab(){
+  const box=el('div'); box.appendChild(el('div','wlabel',"Cadences — music's punctuation. Tap each."));
+  const tri=d=>diatonicTriad(60,'major',d);
+  const C=[
+   {n:'Authentic · V → I',d:[4,0],note:'The "full stop". Maximum resolution — tension landing on home.'},
+   {n:'Plagal · IV → I',d:[3,0],note:'The "Amen" cadence. Softer, gentler arrival.'},
+   {n:'Half · I → V',d:[0,4],note:'A "comma" — it ends ON the tension, leaving you hanging.'},
+   {n:'Deceptive · V → vi',d:[4,5],note:'A "plot twist". You expect home (I) but land on the minor vi.'},
+  ];
+  const info=el('div','whint','Tap a cadence.');
+  C.forEach(c=>{ const b=el('button','opt'); b.style.cssText='margin:0 0 8px;';
+    b.innerHTML=`<b>${c.n}</b>`;
+    b.onclick=()=>{ Audio_.progression(c.d.map(tri),0.95,0.9); info.innerHTML=c.note; };
+    box.appendChild(b); });
+  box.appendChild(info); return box;
+}
+
+/* ---- Inversion demo ---- */
+function inversionDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Same C major chord, three voicings — the bass note changes everything'));
+  const inv=[
+   {n:'Root position',notes:[60,64,67],bass:'C',note:'Root (C) in the bass — most stable, grounded.'},
+   {n:'1st inversion',notes:[64,67,72],bass:'E',note:'3rd (E) in the bass — lighter, more mobile.'},
+   {n:'2nd inversion',notes:[67,72,76],bass:'G',note:'5th (G) in the bass — unstable, leans toward resolving.'},
+  ];
+  const info=el('div','whint','Tap a voicing.');
+  inv.forEach(v=>{ const b=el('button','opt'); b.style.cssText='margin:0 0 8px;display:flex;justify-content:space-between;';
+    b.innerHTML=`<b>${v.n}</b><span style="color:var(--accent2)">bass: ${v.bass}</span>`;
+    b.onclick=()=>{ Audio_.arpThenBlock(v.notes,0.14); info.innerHTML=v.note; };
+    box.appendChild(b); });
+  box.appendChild(info); return box;
+}
+
+/* ---- Voice leading demo ---- */
+function voiceLeadingDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Same progression (C–G–Am–F), voiced two ways'));
+  const jumpy=[[60,64,67],[55,59,62],[57,60,64],[53,57,60]];
+  const smooth=[[60,64,67],[59,62,67],[60,64,69],[60,65,69]];
+  const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Jumpy (all root position)',()=>{Audio_.progression(jumpy,1.0,0.92);info.innerHTML='Each chord leaps to a new spot — it lurches.';},'sec'));
+  row.appendChild(PlayBtn('Smooth (good voice leading)',()=>{Audio_.progression(smooth,1.0,0.92);info.innerHTML='Notes move the shortest distance — often staying put. It flows.';}));
+  box.appendChild(row); box.appendChild(info);
+  box.appendChild(el('div','whint','Same chords, same order. The only difference is how the inner notes travel between them — that is voice leading.'));
+  return box;
+}
+
+/* ---- Melody over harmony ---- */
+function melodyDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','A melody over C–Am–F–G — hear how the strong notes lock to the chords'));
+  const chords=[[48,52,55],[45,48,52],[41,45,48],[43,47,50]];
+  const mel=[67,69,71,72,69,67,65,67];
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Melody alone',()=>Audio_.seq(mel,0.45,0.42),'sec'));
+  row.appendChild(PlayBtn('Chords alone',()=>Audio_.progression(chords,0.9,0.85),'sec'));
+  row.appendChild(PlayBtn('Together',()=>{ const ev=[];
+    chords.forEach((ch,i)=>ch.forEach(m=>ev.push({m,t:i*0.9,d:0.85,g:0.4})));
+    mel.forEach((m,i)=>ev.push({m,t:i*0.45,d:0.4,g:0.85})); Audio_.layer(ev); }));
+  box.appendChild(row);
+  box.appendChild(el('div','whint','The on-the-beat melody notes are <b>chord tones</b> — they fuse with the harmony. The in-between notes are <b>passing tones</b> that create gentle motion without clashing.'));
+  return box;
+}
+
+/* ---- Mode explorer ---- */
+function modeExplorer(){
+  const box=el('div'); let rot=1;
+  box.appendChild(el('div','wlabel','The 7 modes from C — same family of steps, different home, different color'));
+  const chips=MODES.map(m=>({label:m.name,val:m.rot}));
+  box.appendChild(chipRow(chips,1,v=>{rot=v;upd();},'iv'));
+  const disp=el('div'); box.appendChild(disp);
+  const info=el('div','whint'); box.appendChild(info);
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Play this mode',()=>Audio_.seq(buildMode(60,rot),0.34,0.34)));
+  box.appendChild(row);
+  function upd(){ const md=MODES[rot]; const pcs=buildMode(60,rot).map(m=>m%12);
+    const hi={}; pcs.forEach((pc,i)=>hi[pc]=i===0?'root':'hi');
+    disp.innerHTML=''; disp.appendChild(Clock({highlight:hi,shape:pcs.slice(0,7)}));
+    info.innerHTML=`<b>${md.name}${md.alias?' ('+md.alias+')':''}</b> · characteristic note: <span style="color:var(--accent2)">${md.char}</span><br>${md.mood}`;
+  }
+  upd(); return box;
+}
+
+/* ---- Modal interchange ---- */
+function modalInterchangeDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Borrowing a chord from C minor while in C major'));
+  const tri=d=>diatonicTriad(60,'major',d); const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Diatonic: C–F–G–C',()=>{Audio_.progression([tri(0),tri(3),tri(4),tri(0)],0.85,0.78);info.innerHTML='All chords belong to C major — clean and expected.';},'sec'));
+  row.appendChild(PlayBtn('Borrowed: C–Fm–C',()=>{Audio_.progression([tri(0),[53,56,60],tri(0)],0.95,0.9);info.innerHTML='The minor iv (Fm) is borrowed from C minor — that bittersweet ache before home. Heard in countless ballads.';}));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ---- Secondary dominant ---- */
+function secondaryDomDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Aiming a temporary "V" at a chord other than the tonic'));
+  const tri=d=>diatonicTriad(60,'major',d); const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Diatonic: C–Dm–G–C',()=>{Audio_.progression([tri(0),tri(1),tri(4),tri(0)],0.85,0.78);info.innerHTML='Diatonic. The Dm simply sits there on the way to G.';},'sec'));
+  row.appendChild(PlayBtn('With V/V: C–D7–G–C',()=>{Audio_.progression([tri(0),[50,54,57,60],tri(4),tri(0)],0.9,0.85);info.innerHTML='D7 is the "V of G" — for a moment G feels like home, adding a strong extra pull. The F♯ inside D7 is the magic ingredient.';}));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ---- Modulation ---- */
+function modulationDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Changing key mid-phrase: C major → G major'));
+  const triC=d=>diatonicTriad(60,'major',d); const triG=d=>diatonicTriad(67,'major',d); const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Stay in C',()=>{Audio_.progression([triC(0),triC(3),triC(4),triC(0)],0.8,0.74);info.innerHTML='Comfortably home in C the whole time.';},'sec'));
+  row.appendChild(PlayBtn('Pivot to G',()=>{Audio_.progression([triC(0),triC(5),[62,66,69],triG(0)],0.9,0.85);info.innerHTML='The D major chord (the new key\'s V, containing F♯) pivots us into G major — the new home now feels fresh and lifted.';}));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ---- Rhythm lab ---- */
+function rhythmLab(){
+  const box=el('div'); let bpm=90, sig=4, sub=1;
+  box.appendChild(el('div','wlabel','Set a meter and hear the pulse — the loud click is beat "1"'));
+  box.appendChild(chipRow([{label:'4/4',val:4},{label:'3/4 waltz',val:3},{label:'6/8',val:6}],0,v=>{sig=v;}));
+  box.appendChild(el('div','wlabel','Subdivide the beat'));
+  box.appendChild(chipRow([{label:'Quarters',val:1},{label:'Eighths',val:2},{label:'Triplets',val:3},{label:'16ths',val:4}],0,v=>{sub=v;},'iv'));
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Play 2 bars',()=>{ const hits=[]; const beats=sig*2;
+    for(let b=0;b<beats;b++) for(let s=0;s<sub;s++) hits.push({b:b+s/sub,accent:(s===0&&b%sig===0)});
+    Audio_.pattern(hits,bpm); }));
+  box.appendChild(row);
+  box.appendChild(el('div','whint','The big accent marks the <b>downbeat</b> — the start of each bar. Subdividing is how you get faster rhythms without changing the tempo.'));
+  return box;
+}
+
+/* ---- Syncopation ---- */
+function syncopationDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Same tempo, two feels'));
+  const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Straight (on the beat)',()=>{ const h=[];for(let b=0;b<8;b++)h.push({b,accent:b%4===0});Audio_.pattern(h,100);info.innerHTML='Every hit lands squarely on a beat — steady, but square.';},'sec'));
+  row.appendChild(PlayBtn('Syncopated (off the beat)',()=>{Audio_.pattern([{b:0,accent:true},{b:0.5,accent:false},{b:1.5,accent:true},{b:2.5,accent:true},{b:3,accent:false},{b:4,accent:true},{b:4.5,accent:false},{b:5.5,accent:true},{b:6.5,accent:true},{b:7,accent:false}],100);info.innerHTML='Accents fall BETWEEN the beats — that push-and-pull is groove. The pulse of funk, reggae and most pop.';}));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ---- Polyrhythm ---- */
+function polyrhythmDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','3 against 2 — two pulses sharing the same span'));
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Just 2',()=>Audio_.pattern([{b:0,accent:true},{b:1.5,accent:true}],85),'sec'));
+  row.appendChild(PlayBtn('Just 3',()=>Audio_.pattern([{b:0,accent:false},{b:1,accent:false},{b:2,accent:false}],85),'sec'));
+  row.appendChild(PlayBtn('3 against 2',()=>Audio_.pattern([{b:0,accent:true},{b:1,accent:false},{b:1.5,accent:true},{b:2,accent:false}],85)));
+  box.appendChild(row);
+  box.appendChild(el('div','whint','Both cycles begin together and resolve together. Two against three underlies much African, Latin and progressive music.'));
+  return box;
+}
+
+/* ---- Texture lab ---- */
+function textureLab(){
+  const box=el('div'); box.appendChild(el('div','wlabel','One melodic idea, three textures'));
+  const mel=[60,62,64,65,64,62,60]; const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Monophony',()=>{Audio_.seq(mel,0.4,0.38);info.innerHTML='A single line, no accompaniment — one voice, a solo flute.';},'sec'));
+  row.appendChild(PlayBtn('Homophony',()=>{ const ev=[]; mel.forEach((m,i)=>{ev.push({m,t:i*0.5,d:0.45,g:0.85});
+    [m-12,m-9,m-5].forEach(n=>ev.push({m:n,t:i*0.5,d:0.45,g:0.38}));}); Audio_.layer(ev);
+    info.innerHTML='Melody + chords moving together beneath it — the texture of most songs.';},'sec'));
+  row.appendChild(PlayBtn('Polyphony',()=>{ const ev=[]; mel.forEach((m,i)=>ev.push({m,t:i*0.5,d:0.45,g:0.7}));
+    [48,50,52,53,52,50,48].forEach((m,i)=>ev.push({m,t:i*0.5+0.25,d:0.45,g:0.6,type:'sine'})); Audio_.layer(ev);
+    info.innerHTML='Two independent melodies weaving at once — like a round, a fugue, or interlocking guitar parts.';}));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ---- Counterpoint ---- */
+function counterpointDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Two independent lines that still agree harmonically'));
+  const top=[67,69,71,72,71,69,67]; const bottom=[60,59,55,53,55,55,48]; const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Top line',()=>Audio_.seq(top,0.5,0.46),'sec'));
+  row.appendChild(PlayBtn('Bottom line',()=>Audio_.seq(bottom,0.5,0.46),'sec'));
+  row.appendChild(PlayBtn('Both together',()=>{ const ev=[]; top.forEach((m,i)=>ev.push({m,t:i*0.5,d:0.46,g:0.7}));
+    bottom.forEach((m,i)=>ev.push({m,t:i*0.5,d:0.46,g:0.6,type:'sine'})); Audio_.layer(ev);
+    info.innerHTML='When the top rises the bottom tends to fall — contrary motion keeps the lines independent yet consonant.';}));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ---- Arrangement / spacing ---- */
+function arrangementDemo(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Same C major chord, different arrangement choices'));
+  const info=el('div','whint','');
+  const row=el('div','btnrow');
+  row.appendChild(PlayBtn('Thin & high',()=>{Audio_.chord([72,76,79],1.4);info.innerHTML='High register, few notes — light, delicate, exposed.';},'sec'));
+  row.appendChild(PlayBtn('Full & spread',()=>{Audio_.chord([36,48,55,64,67,72],1.6);info.innerHTML='Wide spacing across registers — big, lush and powerful.';},'sec'));
+  row.appendChild(PlayBtn('Low & cramped',()=>{Audio_.chord([36,40,43,47],1.5);info.innerHTML='Notes crammed low together — thick and muddy. The lesson: low chords need wide spacing.';},'sec'));
+  box.appendChild(row); box.appendChild(info); return box;
+}
+
+/* ============================================================
+   COURSE DATA
+   ============================================================ */
+const COURSE=[
+/* ---------- MODULE 1 ---------- */
+{ n:1, track:'Core Track', title:'Notes & the Musical Alphabet',
+  blurb:'The 12 notes, half/whole steps, octaves',
+  intro:'The raw material of all music. By the end you can name any of the 12 notes and measure the distance between them.',
+  lessons:[
+  { id:'m1l1', title:'The 12 Notes', mins:4, blocks:[
+    {t:'p',x:'Western music divides sound into <b>12 notes</b> that repeat over and over. Just 12 — every song you know is built from this small alphabet. Seven of them get plain letter names: <b>A B C D E F G</b>. The other five sit in the gaps.'},
+    {t:'p',x:'You already feel this on guitar: every fret is one of these 12, and the 13th fret sounds "the same" as the open string. That repeat is the <span class="term">octave</span>, and we\'ll get to it shortly.'},
+    {t:'widget',label:'The 12 notes as a clock — tap any to hear it',
+      build:()=>Clock({highlight:{0:'root'},onClick:()=>{}}), hint:'This pitch clock is our main map. 12 o\'clock is C, then each step clockwise is the next note up. After B it wraps back to C.'},
+    {t:'h',x:'The five in-between notes'},
+    {t:'p',x:'The gaps are named relative to their neighbours. The note between C and D can be called <b>C♯</b> ("C sharp" — one notch above C) or <b>D♭</b> ("D flat" — one notch below D). <b>Sharp (♯) means up; flat (♭) means down.</b>'},
+    {t:'note',x:'<b>Same pitch, two names.</b> C♯ and D♭ are the exact same sound — same fret, same key. When one pitch has two names like this, they\'re called <span class="term">enharmonic equivalents</span>. Which name you use depends on the musical context (you\'ll see why in the scales module).'},
+    {t:'widget',label:'On a piano keyboard the pattern is obvious',
+      build:()=>Piano({low:60,high:72,highlight:{60:'root'}}),
+      hint:'The black keys are the five sharps/flats. They cluster in groups of 2 and 3 — that visual grouping is how pianists orient instantly. Tap any key to hear it.'},
+    {t:'p',x:'Notice something: between <b>E and F</b>, and between <b>B and C</b>, there is no black key — no note in between. Those two pairs are already as close as notes get. That detail is the seed of nearly everything in this course, so hold onto it.'},
+  ]},
+  { id:'m1l2', title:'Half Steps & Whole Steps', mins:4, blocks:[
+    {t:'p',x:'There are only two distances you need to start: the <span class="term">half step</span> and the <span class="term">whole step</span>. Every scale and chord is just a recipe written in these two units.'},
+    {t:'p',x:'A <b>half step</b> (or semitone) is the smallest move possible — one note to its immediate neighbour. On guitar, one fret. On piano, the very next key, black or white. C to C♯ is a half step. So is E to F (remember — no note between them).'},
+    {t:'p',x:'A <b>whole step</b> (or whole tone) is two half steps — you skip one note. C to D is a whole step. So is F to G.'},
+    {t:'widget',label:'Hear the difference',build:()=>stepExplorer(),
+      hint:'A half step sounds tight and a little tense; a whole step sounds open and settled. Pick different roots and listen.'},
+    {t:'note',k:'phys',x:'<b>Why E–F and B–C matter.</b> Because those pairs are only a half step apart with no note between, the 7 white-key letters are <i>not</i> evenly spaced. That uneven spacing is exactly what gives the major scale its distinctive shape — not a flaw, but the whole point.'},
+    {t:'h',x:'Counting in half steps'},
+    {t:'p',x:'Any distance can be measured by counting half steps. This is the most reliable way to think about notes: forget letters for a moment and just count notches around the clock. C up 5 half steps lands on F. C up 7 lands on G. We\'ll lean on this constantly in the next module.'},
+  ]},
+  { id:'m1l3', title:'The Octave & Why Notes Repeat', mins:4, blocks:[
+    {t:'p',x:'Count 12 half steps up from any note and you arrive at a note with the <b>same letter name</b>, sounding like a higher version of where you started. That distance is the <span class="term">octave</span>, and it\'s why the 12-note alphabet loops forever instead of running off into new names.'},
+    {t:'p',x:'Pitch is really just <b>frequency</b> — how fast the air vibrates, measured in hertz (Hz). The magic of the octave is a clean physical fact: <b>an octave up is exactly double the frequency.</b>'},
+    {t:'widget',label:'The same note, octave by octave',build:()=>octaveDemo(),
+      hint:'Each C doubles the one below: 131 → 262 → 523 → 1047 Hz. Your ear hears "the same note, higher" because of that doubling.'},
+    {t:'note',k:'phys',x:'<b>Why doubling sounds "the same".</b> When one frequency is double another, every peak of the lower wave lines up with the higher one. The two blend so completely that we hear them as the same note in two registers. This is the most consonant relationship in music — and the reason every culture, independently, discovered the octave.'},
+    {t:'p',x:'This is why we name notes by letter and not by an endless list: A note an octave up is "the same" A. We add a number only when we need to be specific about which octave — C4 is middle C, C5 is the one above.'},
+    {t:'note',k:'code',x:'// Procedural lens: a pitch is just an integer.\n// MIDI note number n → frequency:\n//   freq = 440 * 2^((n - 69) / 12)\n// Up an octave = n + 12 = double the frequency.\n// The whole 12-note system is modular arithmetic, base 12.'},
+  ]},
+  { id:'m1q', title:'Module 1 Quiz', mins:5, quiz:{ questions:[
+    {q:'How many distinct notes are there before the pattern repeats at the octave?',
+     options:['7','8','12','13'], answer:2, why:'12 notes per octave — 7 lettered (A–G) plus 5 sharps/flats.'},
+    {q:'C♯ and D♭ are…',
+     options:['Two different pitches a half step apart','The exact same pitch with two names','Always a whole step apart','Only used on guitar'],
+     answer:1, why:'They\'re enharmonic equivalents — identical pitch, different spelling depending on context.'},
+    {q:'A whole step is equal to…',
+     options:['One half step','Two half steps','Three half steps','Half an octave'], answer:1,
+     why:'A whole step = two half steps. C→D skips over C♯/D♭.'},
+    {q:'Which pair of natural notes is only a HALF step apart (no note between)?',
+     options:['C and D','F and G','E and F','A and B'], answer:2,
+     why:'E–F and B–C are the two natural pairs with no note between them. This uneven spacing shapes the major scale.'},
+    {q:'Going up one octave multiplies the frequency by…',
+     options:['×1.5','×2','×4','+12 Hz'], answer:1,
+     why:'An octave is a doubling of frequency — the cleanest ratio in music, which is why it sounds like "the same note".'},
+    {q:'Listen — is this a half step or a whole step?', sub:'Tap play, then choose.',
+     build:()=>earQ(()=>Audio_.seq([62,64],0.55,0.6)),
+     options:['Half step','Whole step'], answer:1,
+     why:'That was D→E, a whole step (two half steps) — notice the open, settled feel.'},
+    {q:'Listen again — half step or whole step?', sub:'Tap play, then choose.',
+     build:()=>earQ(()=>Audio_.seq([64,65],0.55,0.6)),
+     options:['Half step','Whole step'], answer:0,
+     why:'That was E→F, a half step — tighter and more tense than a whole step.'},
+  ]}},
+]},
+
+/* ---------- MODULE 2 ---------- */
+{ n:2, track:'Core Track', title:'Intervals',
+  blurb:'The distance between two notes — music\'s true atom',
+  intro:'An interval is the gap between two notes. Scales, chords, and harmony are all just stacked intervals — so this is the most leveraged module in the course.',
+  lessons:[
+  { id:'m2l1', title:'What an Interval Is', mins:5, blocks:[
+    {t:'p',x:'An <span class="term">interval</span> is simply the distance between two notes. It\'s <i>the</i> atom of music theory: a chord is a stack of intervals, a scale is a sequence of intervals, and harmony is intervals moving over time. Master intervals and the rest falls into place.'},
+    {t:'p',x:'Every interval has two parts to its name: a <b>number</b> (how many letter-names it spans) and a <b>quality</b> (major, minor, perfect, etc.). For now, the shortcut that never lies is <b>counting half steps</b>.'},
+    {t:'h',x:'The intervals within one octave'},
+    {t:'p',x:'Here\'s the full set, from 0 to 12 half steps. Don\'t memorize — just notice the shape. The 3rds and 5ths (highlighted feel) are the workhorses of harmony; you\'ll meet them everywhere.'},
+    {t:'ul',x:[
+      '<b>m2</b> minor 2nd · 1 half step','<b>M2</b> major 2nd · 2',
+      '<b>m3</b> minor 3rd · 3 &nbsp;— sad/soft color','<b>M3</b> major 3rd · 4 &nbsp;— bright/happy color',
+      '<b>P4</b> perfect 4th · 5','<b>TT</b> tritone · 6 &nbsp;— the restless one',
+      '<b>P5</b> perfect 5th · 7 &nbsp;— hollow, rock-solid','<b>m6</b> minor 6th · 8 · <b>M6</b> major 6th · 9',
+      '<b>m7</b> minor 7th · 10 · <b>M7</b> major 7th · 11','<b>P8</b> octave · 12'
+    ]},
+    {t:'widget',label:'Build any interval',build:()=>intervalBuilder(),
+      hint:'Pick a root and an interval; the clock draws the shape and you hear both notes played apart, then together. The major 3rd vs minor 3rd contrast is the single most important sound in this course — compare them.'},
+    {t:'note',x:'<b>The major/minor split.</b> Notice M3 (4 half steps) sounds bright and happy, while m3 (3 half steps) sounds darker and sadder. One half step of difference flips the entire mood. That one notch is what separates a major chord from a minor chord.'},
+  ]},
+  { id:'m2l2', title:'Consonance & Dissonance', mins:5, blocks:[
+    {t:'p',x:'Some pairs of notes sound sweet and restful; others sound tense and want to move. This is the <span class="term">consonance–dissonance</span> spectrum, and it\'s the engine behind tension and release — the thing that makes music feel like it\'s <i>going somewhere</i>.'},
+    {t:'p',x:'Roughly: octaves and 5ths are the most stable (almost hollow). 3rds and 6ths are sweet and warm. 2nds, 7ths, and the tritone are tense. None are "bad" — dissonance is the fuel; consonance is the resolution.'},
+    {t:'widget',label:'The spectrum — play and feel each',build:()=>consonanceLab(),
+      hint:'Work down the list. The top ones fuse and rest; the bottom ones grind and pull. Trust your ear — you already know these feelings from playing.'},
+    {t:'h',x:'Why — a little physics'},
+    {t:'p',x:'Consonance isn\'t arbitrary or cultural taste. It comes from <b>frequency ratios</b>. When two notes\' frequencies form a simple ratio, their waves line up often and the sound fuses. Complicated ratios mean the waves rarely align, producing the rough "beating" we hear as tension.'},
+    {t:'widget',label:'Ratios behind the feeling',build:()=>ratioDemo(),
+      hint:'The octave is 2:1 — perfectly stable. The 5th is 3:2 — nearly as stable. The minor 2nd is 16:15 — those big numbers are why it grinds.'},
+    {t:'note',k:'phys',x:'<b>This is genuinely physical.</b> Pluck a string and it also vibrates in halves, thirds, quarters — the <i>overtone series</i>. The octave (½), fifth (⅓), and major third (⅕) are literally present inside every single note you play. Consonant intervals are the ones already hiding in the sound. That\'s why they feel like home.'},
+  ]},
+  { id:'m2l3', title:'Using Intervals to Hear', mins:4, blocks:[
+    {t:'p',x:'The payoff: once you can name intervals, you can explain <i>why</i> any two notes sound the way they do together — and start hearing them in the wild. This is also the foundation of ear training.'},
+    {t:'p',x:'A classic trick is to anchor each interval to a song you know. The first two notes of a familiar tune lock the sound into memory:'},
+    {t:'ul',x:[
+      '<b>Perfect 5th</b> (7) — opening of "Twinkle Twinkle" / Star Wars theme. Hollow, heroic.',
+      '<b>Major 3rd</b> (4) — opening of "When the Saints Go Marching In". Bright.',
+      '<b>Minor 3rd</b> (3) — "Greensleeves" / "Hey Jude" (last two notes of the title). Wistful.',
+      '<b>Perfect 4th</b> (5) — "Here Comes the Bride". Strong, ceremonial.',
+      '<b>Octave</b> (12) — "Somewhere" from West Side Story ("Some-where"). A leap to the same note.',
+      '<b>Tritone</b> (6) — "The Simpsons" theme ("The Simp-"). Unstable, cartoonish.'
+    ]},
+    {t:'widget',label:'Test your anchors — build and replay any interval',build:()=>intervalBuilder(),
+      hint:'Set the interval, play it, and hum the song it reminds you of. Do this often and naming-by-ear becomes automatic.'},
+    {t:'note',x:'<b>Inversion bonus.</b> Flip an interval (move the lower note up an octave) and it "completes" to 12. A 5th (7) inverts to a 4th (5): 7+5=12. A major 3rd (4) inverts to a minor 6th (8). Useful shortcut: learn half the intervals and you get the rest for free.'},
+  ]},
+  { id:'m2q', title:'Module 2 Quiz', mins:6, quiz:{ questions:[
+    {q:'How many half steps are in a Perfect 5th?',
+     options:['5','6','7','8'], answer:2, why:'A perfect 5th = 7 half steps. C up to G.'},
+    {q:'What\'s the difference between a major 3rd and a minor 3rd?',
+     options:['One half step — major is bigger and brighter','A whole octave','Nothing, they\'re the same','The major 3rd is lower'],
+     answer:0, why:'M3 = 4 half steps (bright), m3 = 3 (darker). That single half step flips a chord between happy and sad.'},
+    {q:'Which interval is the MOST consonant (most stable)?',
+     options:['Minor 2nd','Tritone','Octave','Major 7th'], answer:2,
+     why:'The octave, ratio 2:1, is the most consonant interval — so stable it sounds like the same note.'},
+    {q:'Consonance comes mainly from…',
+     options:['Simple frequency ratios','The color of the instrument','How loud the notes are','Cultural habit alone'],
+     answer:0, why:'Simple ratios (2:1, 3:2, 5:4) make waves align and fuse. They\'re also present in the natural overtone series.'},
+    {q:'A Perfect 5th (7 half steps) inverted becomes…',
+     options:['Another 5th','A Perfect 4th (5)','A major 3rd (4)','An octave'], answer:1,
+     why:'Inversions sum to 12: 7 + 5 = 12, so a 5th inverts to a 4th.'},
+    {q:'Listen — name this interval.', sub:'Played low then high. Tap play.',
+     build:()=>earQ(()=>Audio_.interval(60,67,0.7,0.6)),
+     options:['Minor 2nd','Major 3rd','Perfect 5th','Octave'], answer:2,
+     why:'That was C→G, a perfect 5th — that hollow, open, "Star Wars" sound.'},
+    {q:'Listen — bright or dark? Name it.', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.interval(60,63,0.7,0.6)),
+     options:['Major 3rd (bright)','Minor 3rd (dark)','Perfect 4th','Tritone'], answer:1,
+     why:'That was C→E♭, a minor 3rd — the darker, more wistful of the two thirds.'},
+    {q:'Listen — this tense, restless interval is the…', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.interval(60,66,0.7,0.6)),
+     options:['Octave','Perfect 5th','Tritone','Major 2nd'], answer:2,
+     why:'That was the tritone (6 half steps) — maximally unstable, the "Simpsons" leap. It badly wants to resolve.'},
+  ]}},
+]},
+
+/* ---------- MODULE 3 ---------- */
+{ n:3, track:'Core Track', title:'Scales & Keys',
+  blurb:'Recipes of steps, and the gravity of a key',
+  intro:'A scale is a fixed pattern of whole and half steps. A key is the gravitational field a piece lives in. Same pattern, any starting note — that\'s every key there is.',
+  lessons:[
+  { id:'m3l1', title:'The Major Scale', mins:5, blocks:[
+    {t:'p',x:'A <span class="term">scale</span> is a recipe: a fixed pattern of whole and half steps that you can start on any note. The most important one is the <b>major scale</b> — the "do re mi fa sol la ti do" you already know in your bones.'},
+    {t:'p',x:'Its pattern, in whole (W) and half (H) steps, is:'},
+    {t:'note',x:'<b style="color:var(--accent2);font-size:1.05rem;letter-spacing:1px;">W – W – H – W – W – W – H</b><br>Start on any note, follow that exact sequence of steps, and you\'ve built a major scale. The two half steps (after the 3rd note and after the 7th) are what give it that bright, resolved, "coming home" sound.'},
+    {t:'p',x:'Start on C and follow the recipe and you get <b>C D E F G A B C</b> — all white keys, no sharps or flats. That\'s not a coincidence: the white keys <i>are</i> C major. The uneven spacing you learned in Module 1 (those E–F and B–C half steps) is precisely the W-W-H-W-W-W-H pattern.'},
+    {t:'widget',label:'Build & hear any major scale',build:()=>scaleBuilder('major'),
+      hint:'Keep it on Major and change the root. The shape on the clock stays identical — it just rotates. That rotating shape IS the scale; the starting note just names the key.'},
+    {t:'note',k:'code',x:'// Procedural lens: a scale is a step-pattern.\n// major = [2,2,1,2,2,2,1]  (half steps)\n// notes = scan-add from root, mod 12.\n// Rotating the start note = transposing to a new key.'},
+  ]},
+  { id:'m3l2', title:'Minor Scales', mins:5, blocks:[
+    {t:'p',x:'If major is bright, <span class="term">minor</span> is its shadow — darker, more serious or melancholy. The key difference is a <b>flatter 3rd</b> (that major-vs-minor 3rd from Module 2, now built into the whole scale).'},
+    {t:'p',x:'There are three minor scales. They share the same first five notes and differ only near the top:'},
+    {t:'ul',x:[
+      '<b>Natural minor</b> — W H W W H W W. The pure, plain minor sound. (It\'s also the white keys starting from A.)',
+      '<b>Harmonic minor</b> — raises the 7th note, creating a strong pull back to the root (and an exotic gap near the top).',
+      '<b>Melodic minor</b> — raises the 6th and 7th going up, for a smoother climb; often reverts to natural coming down.'
+    ]},
+    {t:'widget',label:'Compare the minor scales',build:()=>scaleBuilder('natminor'),
+      hint:'Switch between the three minor types on the same root and listen to the top of each. Harmonic minor\'s raised 7th gives that dramatic, almost Spanish flavour.'},
+    {t:'note',x:'<b>Relative vs parallel.</b> A minor and C major use the exact same notes — they\'re <i>relative</i> (same notes, different home base). A minor and A major start on the same note but differ — they\'re <i>parallel</i>. Both relationships become powerful tools later for borrowing color between scales.'},
+    {t:'note',k:'phys',x:'<b>Why the three minors exist.</b> Natural minor sounds great melodically but its 7th note sits a whole step below the root, so it doesn\'t "pull home" strongly. Harmonic minor raises that 7th to fix the harmony; melodic minor also raises the 6th to smooth out the awkward gap that creates. They\'re practical fixes, not arbitrary variants.'},
+  ]},
+  { id:'m3l3', title:'Keys & the Circle of Fifths', mins:6, blocks:[
+    {t:'p',x:'A <span class="term">key</span> is the gravitational field a piece lives in: one note (the <b>tonic</b>) feels like home, and the scale built on it supplies the notes that belong. "In the key of G major" means G is home and you\'re drawing from the G major scale.'},
+    {t:'p',x:'Because each major scale has a fixed pattern, each key needs a specific set of sharps or flats to keep that pattern intact. That fixed set is the <span class="term">key signature</span>. C major needs none. G major needs exactly one sharp (F♯). Add it and G\'s scale follows W-W-H-W-W-W-H perfectly; leave it out and the pattern breaks.'},
+    {t:'widget',label:'The Circle of Fifths',build:()=>circleOfFifths(),
+      hint:'Moving clockwise, each key is a perfect 5th up and adds one sharp. Counter-clockwise adds flats. Neighbours share almost all their notes — which is why they sound related and why music modulates between them.'},
+    {t:'p',x:'The circle is the master map of keys. Two ideas make it click: <b>(1)</b> each step clockwise jumps up a 5th and adds one sharp (C→G→D→A…); <b>(2)</b> keys near each other on the circle share most of their notes, so moving between them sounds smooth. Distant keys (across the circle) share few notes and sound like a dramatic shift.'},
+    {t:'note',x:'<b>Why "fifths"?</b> Stacking perfect 5ths (the second-most consonant interval) is the most efficient way to tour all 12 notes — go up a 5th twelve times and you hit every note before returning home. The circle is literally that journey drawn as a clock. It\'s the same deep fact that makes 5ths sound so stable, now organizing every key in music.'},
+    {t:'p',x:'You don\'t need to memorize all of this now. The takeaway: keys aren\'t a random list — they\'re a connected map, and closeness on the circle equals similarity in sound. We\'ll use it constantly once we start moving between chords and keys.'},
+  ]},
+  { id:'m3q', title:'Module 3 Quiz', mins:6, quiz:{ questions:[
+    {q:'What is the step pattern of the major scale?',
+     options:['W W W H W W H','W H W W H W W','W W H W W W H','H W W H W W W'], answer:2,
+     why:'W-W-H-W-W-W-H. The two half steps (after the 3rd and 7th notes) give major its bright, resolved sound.'},
+    {q:'Which key has no sharps or flats?',
+     options:['G major','C major','F major','D major'], answer:1,
+     why:'C major is all white keys — its scale already matches W-W-H-W-W-W-H with no accidentals.'},
+    {q:'A minor and C major contain the same notes. They are called…',
+     options:['Parallel keys','Relative keys','Enharmonic keys','Identical keys'], answer:1,
+     why:'Same notes, different tonic = relative keys. (Same tonic, different notes would be parallel.)'},
+    {q:'On the circle of fifths, moving one step clockwise…',
+     options:['Adds one flat','Adds one sharp','Changes nothing','Jumps an octave'], answer:1,
+     why:'Clockwise = up a perfect 5th = add one sharp (C→G→D…). Counter-clockwise adds flats.'},
+    {q:'What mainly separates a minor scale from a major scale?',
+     options:['A flatter (lowered) 3rd','A higher tonic','More notes overall','A faster tempo'], answer:0,
+     why:'The lowered 3rd is the core of the minor sound — the same M3-vs-m3 contrast from Module 2, built into the scale.'},
+    {q:'Listen — is this scale major or minor?', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.seq(buildScale(60,'major'),0.34,0.34)),
+     options:['Major','Minor'], answer:0,
+     why:'That was C major ascending — bright and resolved, ending with a satisfying "arrival" at the octave.'},
+    {q:'Listen — major or minor?', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.seq(buildScale(60,'natminor'),0.34,0.34)),
+     options:['Major','Minor'], answer:1,
+     why:'That was C natural minor — the lowered 3rd, 6th and 7th give it that darker, more serious color.'},
+    {q:'Listen — which minor scale is this? (Note the dramatic gap near the top.)', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.seq(buildScale(60,'harmonicminor'),0.34,0.34)),
+     options:['Natural minor','Harmonic minor','Melodic minor','Major'], answer:1,
+     why:'Harmonic minor — the raised 7th creates that big, exotic leap near the top and a strong pull home.'},
+  ]}},
+]},
+
+/* ---------- MODULE 4 ---------- */
+{ n:4, track:'Core Track', title:'Chord Construction',
+  blurb:'Stacking intervals into triads and beyond',
+  intro:'A chord is intervals stacked from a scale. Learn the four triads and the 7th chords, and you can build or name almost any chord you meet.',
+  lessons:[
+  { id:'m4l1', title:'Triads — the Four Flavors', mins:5, blocks:[
+    {t:'p',x:'A <span class="term">triad</span> is a three-note chord built by stacking two 3rds. Take a root, skip up a 3rd, skip up another 3rd. Which <i>kind</i> of 3rd you stack (major = 4 half steps, minor = 3) decides the chord\'s entire personality — exactly the major/minor 3rd you met in Module 2.'},
+    {t:'p',x:'There are four ways to combine those two thirds, giving the four triad types:'},
+    {t:'ul',x:[
+      '<b>Major</b> = major 3rd + minor 3rd (root, +4, +7). Bright, happy, resolved.',
+      '<b>Minor</b> = minor 3rd + major 3rd (root, +3, +7). Dark, sad, serious.',
+      '<b>Diminished</b> = minor 3rd + minor 3rd (root, +3, +6). Tense, unstable, anxious.',
+      '<b>Augmented</b> = major 3rd + major 3rd (root, +4, +8). Strange, dreamlike, suspended.'
+    ]},
+    {t:'note',x:'<b>The whole game is the 3rd.</b> Major and minor triads share the same root and 5th — only the middle note moves by one half step. That single note is the difference between joy and sorrow in music. Everything else is coloring on top.'},
+    {t:'widget',label:'Build any chord',build:()=>chordBuilder(),
+      hint:'Start by flipping between Major and Minor on the same root — listen to that one note move. Then try Diminished (notice the unease) and Augmented (notice it can\'t sit still).'},
+    {t:'note',k:'code',x:'// Procedural lens: a chord is a set of offsets from a root.\n// major = [0,4,7]   minor = [0,3,7]\n// dim   = [0,3,6]   aug   = [0,4,8]\n// Transpose = add the root midi number to every offset.'},
+  ]},
+  { id:'m4l2', title:'7th Chords & Extensions', mins:5, blocks:[
+    {t:'p',x:'Keep stacking 3rds past the triad and you add <b>color</b>. Add one more 3rd on top of a triad and you get a <span class="term">7th chord</span> — four notes, a richer and more sophisticated sound. These are the backbone of jazz, soul, and most film music.'},
+    {t:'ul',x:[
+      '<b>Major 7th</b> (maj7) — lush, dreamy, warm. A major triad + a major 7th on top.',
+      '<b>Minor 7th</b> (m7) — smooth, mellow, jazzy. A minor triad + a minor 7th.',
+      '<b>Dominant 7th</b> (7) — bluesy and <i>restless</i>; it badly wants to resolve. A major triad + a minor 7th. This is the engine of tension in harmony.'
+    ]},
+    {t:'widget',label:'Hear the 7th chords',build:()=>chordBuilder(),
+      hint:'Switch to maj7, m7, and dom7 on C. The dominant 7th is special — it contains a hidden tritone (from Module 2) that creates its hunger to move.'},
+    {t:'h',x:'Extensions: 9ths, 11ths, 13ths'},
+    {t:'p',x:'Keep going past the 7th — stacking still more 3rds — and you reach the <span class="term">extensions</span>: the 9th, 11th, and 13th. They don\'t change a chord\'s basic function; they\'re added spice — the "wider" lush sound of a Stevie Wonder or Steely Dan chord. You rarely play all of them at once; you pick the colors you want.'},
+    {t:'note',x:'<b>Why odd numbers?</b> 1, 3, 5, 7, 9, 11, 13 — chords are built in 3rds, so you skip every other scale degree. A 9th is just the 2nd up an octave; an 11th is the 4th; a 13th is the 6th. Same notes you know, lifted into a higher, sweeter register.'},
+    {t:'note',k:'phys',x:'<b>The dominant 7th\'s secret.</b> In a C7 chord (C–E–G–B♭), the E and B♭ are a tritone apart — the most unstable interval there is. The ear hears that tension and demands release, which is why a dominant 7th pulls so strongly toward its home chord. Tension is built right into the stack.'},
+  ]},
+  { id:'m4q', title:'Module 4 Quiz', mins:6, quiz:{ questions:[
+    {q:'A major triad is built from the root by stacking…',
+     options:['Two minor 3rds','A major 3rd then a minor 3rd','A minor 3rd then a major 3rd','Two major 3rds'], answer:1,
+     why:'Major = major 3rd (+4) then minor 3rd (+7 total). Minor flips the order; that one inner note is the whole difference.'},
+    {q:'Which triad is built from two stacked minor 3rds (root, +3, +6)?',
+     options:['Major','Minor','Diminished','Augmented'], answer:2,
+     why:'Diminished = two minor 3rds — tense and unstable, with a tritone between root and top.'},
+    {q:'What separates a major triad from a minor triad?',
+     options:['The root note','The 5th','Just the middle note (the 3rd), by one half step','The number of notes'], answer:2,
+     why:'They share root and 5th; only the 3rd differs by a half step. That single note flips happy to sad.'},
+    {q:'A dominant 7th chord (e.g. C7) is restless because it contains…',
+     options:['Two perfect 5ths','A hidden tritone','Only consonant intervals','An octave'], answer:1,
+     why:'The 3rd and ♭7 form a tritone — maximally unstable, so the chord pulls hard toward resolution.'},
+    {q:'A 9th, 11th, or 13th added to a chord is…',
+     options:['A completely new root','Added color/extension, built by stacking more 3rds','A rhythm marking','The same as an inversion'], answer:1,
+     why:'Extensions keep stacking 3rds (the 2nd, 4th, 6th lifted an octave) for a wider, richer color.'},
+    {q:'Listen — major or minor triad?', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.arpThenBlock(buildChord(60,'maj'))),
+     options:['Major','Minor'], answer:0, why:'C major triad — bright and resolved.'},
+    {q:'Listen — which triad? (Notice the unstable, anxious quality.)', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.arpThenBlock(buildChord(60,'dim'))),
+     options:['Major','Minor','Diminished','Augmented'], answer:2,
+     why:'Diminished — two minor 3rds give that tense, unresolved sound that wants to move.'},
+    {q:'Listen — this lush four-note chord is a…', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.arpThenBlock(buildChord(60,'maj7'))),
+     options:['Major triad','Major 7th','Diminished triad','Augmented triad'], answer:1,
+     why:'Major 7th (Cmaj7) — that warm, dreamy, slightly jazzy color from the major 7th on top.'},
+  ]}},
+]},
+
+/* ---------- MODULE 5 ---------- */
+{ n:5, track:'Core Track', title:'Diatonic Harmony',
+  blurb:'The chords that belong to a key',
+  intro:'Build a chord on every note of a scale and you get the family of chords that naturally belong to that key. The Roman-numeral system makes this family portable to any key.',
+  lessons:[
+  { id:'m5l1', title:'Chords From the Scale', mins:5, blocks:[
+    {t:'p',x:'Here\'s where scales and chords meet. Take a major scale and build a triad on <i>each</i> of its seven notes — using only notes from that scale. You get seven chords, and together they are the <span class="term">diatonic</span> chords: the home family of that key.'},
+    {t:'p',x:'In C major (all white keys), stacking 3rds on each degree gives: C, Dm, Em, F, G, Am, B°. Notice you didn\'t choose those qualities — they fell out automatically from the scale\'s uneven spacing.'},
+    {t:'widget',label:'The chord family of C major',build:()=>diatonicExplorer('major'),
+      hint:'Tap each chord, then play all seven up the scale. The pattern of major/minor/diminished is the fingerprint of every major key.'},
+    {t:'note',x:'<b>The quality pattern (major key):</b> <b>major, minor, minor, major, major, minor, diminished.</b> This never changes. Learn it once and you instantly know the chords of any major key — just apply it to that key\'s scale.'},
+    {t:'p',x:'Minor keys have their own fixed pattern. Build triads on the natural minor scale and you get: minor, diminished, major, minor, minor, major, major. Same idea, different fingerprint — which is why major and minor keys <i>feel</i> structurally different.'},
+  ]},
+  { id:'m5l2', title:'Roman Numerals', mins:5, blocks:[
+    {t:'p',x:'Musicians label these seven chords by their <i>position</i> in the scale using Roman numerals, not by letter name. This is one of the most powerful ideas in theory.'},
+    {t:'note',x:'<b style="letter-spacing:1px;color:var(--accent2)">I &nbsp; ii &nbsp; iii &nbsp; IV &nbsp; V &nbsp; vi &nbsp; vii°</b><br>Capitals = major, lowercase = minor, ° = diminished. In any major key, the chord built on the 1st degree is "I", on the 5th degree is "V", and so on.'},
+    {t:'p',x:'Why bother? Because it makes keys <b>interchangeable</b>. "I–IV–V" is the same musical idea whether you\'re in C (C–F–G) or in E (E–A–B). The numerals describe the <i>relationships</i> between chords, which is what actually creates the music — the specific letters are just a transposition detail.'},
+    {t:'widget',label:'See the numerals in action',build:()=>diatonicExplorer('major'),
+      hint:'Each button shows the Roman numeral and the actual C-major chord. The numeral is the portable idea; the letter is just where it lands in this key.'},
+    {t:'note',x:'<b>This is the language of the rest of the course.</b> From here on we\'ll talk about progressions as "I–V–vi–IV" rather than naming chords. Once it clicks, you can transpose any song to any key in your head, and you\'ll see the same handful of patterns everywhere.'},
+    {t:'note',k:'code',x:'// Procedural lens: diatonic chords = scan the scale,\n// take every 3rd note (degree, degree+2, degree+4).\n// The quality pattern emerges from the scale\'s step sizes\n// — no special-casing needed.'},
+  ]},
+  { id:'m5q', title:'Module 5 Quiz', mins:6, quiz:{ questions:[
+    {q:'The diatonic chords of a key are…',
+     options:['Any chords you like','The chords built on each scale degree using only that scale\'s notes','Only major chords','The same in every key by letter'], answer:1,
+     why:'Build a triad on each scale note using only scale notes — that\'s the key\'s home chord family.'},
+    {q:'The quality pattern of a MAJOR key is…',
+     options:['maj min min maj maj min dim','min maj maj min min maj dim','maj maj maj min min min dim','all major'], answer:0,
+     why:'I ii iii IV V vi vii° = major, minor, minor, major, major, minor, diminished. Fixed in every major key.'},
+    {q:'In Roman numeral analysis, a lowercase numeral (e.g. "ii") means…',
+     options:['A major chord','A minor chord','A diminished chord','The loudest chord'], answer:1,
+     why:'Lowercase = minor, uppercase = major, ° = diminished.'},
+    {q:'The main advantage of Roman numerals is that they…',
+     options:['Sound better','Make progressions portable to any key','Are easier to write','Only work in C'], answer:1,
+     why:'I–IV–V is the same idea in every key; numerals capture the relationships, not the specific letters.'},
+    {q:'In the key of G major, what chord is "V"?',
+     options:['G','C','D','Em'], answer:2,
+     why:'The 5th degree of G major is D, so V = D major. (G A B C D…)'},
+    {q:'The chord built on the 7th degree of a major scale (vii°) is…',
+     options:['Major','Minor','Diminished','Augmented'], answer:2,
+     why:'vii° is diminished — the lone diminished triad in the major-key family.'},
+    {q:'Listen — these are the 7 diatonic chords of a key, played up the scale. The key is…', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.progression(MAJ_DIATONIC.map((d,i)=>diatonicTriad(60,'major',i)),0.6,0.55)),
+     options:['Major','Minor'], answer:0,
+     why:'That bright, resolved family climbing up is the major-key set (I ii iii IV V vi vii°).'},
+  ]}},
+]},
+
+/* ---------- MODULE 6 ---------- */
+{ n:6, track:'Core Track', title:'Chord Progressions & Function',
+  blurb:'Why chords move — tension and resolution',
+  intro:'The heart of harmony. Chords aren\'t random — each has a job (a function), and progressions work by building tension and releasing it. This is why music feels like it\'s going somewhere.',
+  lessons:[
+  { id:'m6l1', title:'The Three Functions', mins:5, blocks:[
+    {t:'p',x:'Every diatonic chord plays one of three roles in the drama of a key. Think of it as a journey: leaving home, traveling, and the pull to return.'},
+    {t:'ul',x:[
+      '<b>Tonic (home)</b> — I (and vi, iii). Rest, stability, arrival. Where the music wants to end up.',
+      '<b>Subdominant (away)</b> — IV (and ii). Motion, departure — we\'ve left home but there\'s no crisis yet.',
+      '<b>Dominant (tension)</b> — V (and vii°). Maximum tension, an itch that <i>demands</i> resolution back to the tonic.'
+    ]},
+    {t:'p',x:'A satisfying progression is a trip through these functions: <b>tonic → subdominant → dominant → tonic</b>. Home, away, tension, home. That arc is underneath an astonishing amount of music.'},
+    {t:'h',x:'The pull of V → I'},
+    {t:'p',x:'The strongest force in tonal music is the dominant resolving to the tonic — <b>V → I</b>. The V chord contains the <span class="term">leading tone</span> (the 7th scale degree), which sits just a half step below home and aches to slide up to it. Add a 7th (making it V7) and you get a tritone too, doubling the pull.'},
+    {t:'widget',label:'Feel the functions',build:()=>progressionPlayer(),
+      hint:'Play I–IV–V–I and notice the shape: settled, then moving, then tense, then the relief of coming home. Every other progression here is a variation on that emotional arc.'},
+    {t:'note',k:'phys',x:'<b>Why V pulls so hard.</b> In C major, the V chord (G–B–D) contains B — the leading tone, one half step below C. Half-step motion is the strongest melodic pull there is (Module 1). Your ear hears B and wants C the way a held breath wants release.'},
+  ]},
+  { id:'m6l2', title:'Cadences & Common Progressions', mins:5, blocks:[
+    {t:'p',x:'A <span class="term">cadence</span> is how a musical phrase ends — the punctuation of music. Just as sentences end with periods, commas, or cliffhangers, phrases end with different cadences that signal "done", "pause", or "more coming".'},
+    {t:'widget',label:'The four cadences',build:()=>cadenceLab(),
+      hint:'Authentic (V–I) is a full stop. Plagal (IV–I) is the gentle "Amen". Half (ending on V) is a comma that leaves you hanging. Deceptive (V–vi) fakes the ending — the surprise that keeps a song going.'},
+    {t:'h',x:'Progressions that recur everywhere'},
+    {t:'p',x:'A handful of progressions show up across pop, rock, jazz, classical and folk — not by copying, but because they trace that tonic–subdominant–dominant arc so cleanly. Learn these and you\'ll recognize the skeleton of thousands of songs.'},
+    {t:'widget',label:'The greatest hits',build:()=>progressionPlayer(),
+      hint:'I–V–vi–IV alone underlies hundreds of pop songs. ii–V–I is the heartbeat of jazz. Play each and listen for where the tension sits and how it releases.'},
+    {t:'note',x:'<b>Why these and not others?</b> Strong progressions move by descending 5ths (V→I, ii→V) or step into the tonic — motions the ear finds inevitable. Weak or "backward" moves (like V→IV) feel like swimming upstream. Function explains <i>why</i> some chord moves feel right and others feel off.'},
+  ]},
+  { id:'m6q', title:'Module 6 Quiz', mins:6, quiz:{ questions:[
+    {q:'The three harmonic functions are…',
+     options:['Loud, medium, soft','Tonic, subdominant, dominant','Major, minor, diminished','Verse, chorus, bridge'], answer:1,
+     why:'Tonic (home), subdominant (away), dominant (tension) — the three roles every chord plays.'},
+    {q:'Which chord creates the strongest pull back to the tonic?',
+     options:['IV','ii','V','vi'], answer:2,
+     why:'V (the dominant) contains the leading tone a half step below home, creating the strongest pull to I.'},
+    {q:'An authentic cadence is…',
+     options:['IV → I','V → I','I → V','V → vi'], answer:1,
+     why:'V → I is the authentic cadence — the strongest, most conclusive "full stop".'},
+    {q:'A deceptive cadence (V → vi) works by…',
+     options:['Resolving as expected','Setting up the tonic then landing on the minor vi instead','Ending on silence','Going to the subdominant'], answer:1,
+     why:'V sets up an expected I, but lands on vi instead — a satisfying surprise that keeps things moving.'},
+    {q:'The "leading tone" that gives V its pull is…',
+     options:['A whole step above the tonic','A half step below the tonic','The 5th of the scale','The same as the root'], answer:1,
+     why:'The leading tone sits a half step below the tonic and aches to resolve up to it.'},
+    {q:'The typical tension arc of a progression is…',
+     options:['tonic → dominant → subdominant → tonic','tonic → subdominant → dominant → tonic','dominant → tonic → dominant','random'], answer:1,
+     why:'Home → away → tension → home. The classic, satisfying journey through the functions.'},
+    {q:'Listen — which cadence is this? (A strong, conclusive ending.)', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.progression([diatonicTriad(60,'major',4),diatonicTriad(60,'major',0)],0.95,0.9)),
+     options:['Plagal (IV–I)','Authentic (V–I)','Half (I–V)','Deceptive (V–vi)'], answer:1,
+     why:'V–I, the authentic cadence — that decisive "we have arrived" sound.'},
+    {q:'Listen — this gentle "Amen"-style ending is the…', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.progression([diatonicTriad(60,'major',3),diatonicTriad(60,'major',0)],0.95,0.9)),
+     options:['Authentic (V–I)','Plagal (IV–I)','Half (I–V)','Deceptive (V–vi)'], answer:1,
+     why:'IV–I, the plagal or "Amen" cadence — softer and gentler than the authentic.'},
+  ]}},
+]},
+
+/* ---------- MODULE 7 ---------- */
+{ n:7, track:'Core Track', title:'Voice Leading & Building Harmony',
+  blurb:'Making a progression flow, not lurch',
+  intro:'A chord progression is a skeleton. Voice leading is how you connect the chords smoothly — moving each note the shortest distance — so the harmony flows like water instead of jumping around.',
+  lessons:[
+  { id:'m7l1', title:'Inversions & the Bass Line', mins:5, blocks:[
+    {t:'p',x:'A chord\'s notes can be stacked in any order. When a note other than the root sits at the bottom, the chord is in an <span class="term">inversion</span>. The notes are the same — it\'s still a C chord — but the <b>bass note</b> changes its weight and feel.'},
+    {t:'widget',label:'Three voicings of one chord',build:()=>inversionDemo(),
+      hint:'Root position feels grounded; inversions feel lighter and more mobile. Same chord, different center of gravity.'},
+    {t:'p',x:'Inversions exist mostly to serve the <b>bass line</b> — the lowest voice, which is a melody in its own right. By choosing inversions, you can make the bass walk smoothly by step instead of leaping around. A smooth bass line is half of what makes harmony sound professional.'},
+    {t:'note',x:'<b>Slash chords.</b> You\'ll see notation like "C/E" — that means a C chord with E in the bass (first inversion). The part after the slash is just which note to put on the bottom. It\'s how musicians write inversions quickly.'},
+  ]},
+  { id:'m7l2', title:'Smooth Voice Leading', mins:6, blocks:[
+    {t:'p',x:'Here\'s the core principle, and it\'s almost a law: <b>when moving from one chord to the next, move each voice as little as possible.</b> Keep common notes where they are, and move the rest by a step. The result is smooth, connected, and singable.'},
+    {t:'widget',label:'Same chords, two ways',build:()=>voiceLeadingDemo(),
+      hint:'Both play C–G–Am–F. The "jumpy" version slams each chord in root position; the "smooth" version barely moves the inner notes. Same harmony — utterly different polish.'},
+    {t:'p',x:'Two practical habits do most of the work: <b>(1) Common-tone retention</b> — if two adjacent chords share a note, keep it in the same voice. <b>(2) Nearest-note motion</b> — move the other voices to the closest available chord tone. Together they minimize total movement.'},
+    {t:'h',x:'Adding color tones tastefully'},
+    {t:'p',x:'Once the motion is smooth, you can enrich chords with the color tones from Module 4 — 7ths, 9ths, suspensions. A <span class="term">suspension</span> holds a note from the previous chord that clashes slightly, then resolves down by step — a tiny moment of tension and release inside a single chord change. Used sparingly, color tones add sophistication; overused, they turn to mud.'},
+    {t:'note',k:'code',x:'// Procedural lens: voice leading is an optimization.\n// For each chord change, assign new-chord notes to voices\n// to MINIMIZE total semitone movement (a min-cost matching).\n// "Good harmony" literally is a distance-minimization problem.'},
+  ]},
+  { id:'m7q', title:'Module 7 Quiz', mins:5, quiz:{ questions:[
+    {q:'A chord inversion is…',
+     options:['A different chord','The same chord with a non-root note in the bass','A chord played backwards','A faster chord'], answer:1,
+     why:'Same notes, different bass note. C/E is a C chord with E on the bottom.'},
+    {q:'The core principle of voice leading is…',
+     options:['Move every note as far as possible','Move each voice as little as possible','Always use root position','Play louder'], answer:1,
+     why:'Minimal motion — keep common tones, move the rest by the smallest step — makes harmony flow.'},
+    {q:'"Common-tone retention" means…',
+     options:['Repeating the same chord','Keeping a shared note in the same voice between chords','Removing the 5th','Doubling the root'], answer:1,
+     why:'If two chords share a note, hold it in place — that anchor smooths the change.'},
+    {q:'Inversions are chosen mainly to…',
+     options:['Make chords louder','Create a smooth bass line','Change the key','Add more notes'], answer:1,
+     why:'Inversions let the bass move by step instead of leaping — a smooth bass line sounds professional.'},
+    {q:'A suspension is…',
+     options:['A held note that clashes briefly then resolves down by step','A silent beat','A key change','A type of cadence'], answer:0,
+     why:'A suspension holds a note into the next chord (slight tension), then steps down to resolve — tension and release within one change.'},
+    {q:'Listen — which version has smoother voice leading?', sub:'You\'ll hear two takes of C–G–Am–F: first jumpy, then smooth.',
+     build:()=>el('div','whint','(Use the widget above to compare — then answer.)'),
+     options:['The one where chords leap around','The one where inner notes barely move','They\'re identical','Neither'], answer:1,
+     why:'Smaller motion between chords = smoother voice leading, even though the chords are the same.'},
+  ]}},
+]},
+
+/* ---------- MODULE 8 ---------- */
+{ n:8, track:'Core Track', title:'Melody',
+  blurb:'Writing and understanding the top line',
+  intro:'Harmony is the ground; melody is the figure walking across it. A great melody has shape and phrasing, and it dances with the harmony underneath — landing on chord tones, passing through the rest.',
+  lessons:[
+  { id:'m8l1', title:'Contour & Phrasing', mins:5, blocks:[
+    {t:'p',x:'A melody is a single line of notes, but it has <b>shape</b>. Its <span class="term">contour</span> — the path it traces rising and falling — is what you actually remember about a tune, often more than the exact notes. Most memorable melodies have a clear high point (a climax) and a satisfying descent home.'},
+    {t:'p',x:'Melodies also breathe. They\'re built from <span class="term">phrases</span> — short musical sentences, usually a few bars long, often arranged in question-and-answer pairs. The first phrase poses a question (ending unresolved); the second answers it (ending settled). That call-and-response is why a good melody feels like it\'s <i>saying</i> something.'},
+    {t:'ul',x:[
+      '<b>Steps vs leaps:</b> Mostly stepwise motion sounds smooth and singable; an occasional leap creates drama. Too many leaps and the line feels jagged.',
+      '<b>Range:</b> Reserve your highest note for the emotional peak — spend it once, not constantly.',
+      '<b>Repetition & variation:</b> Repeat a small idea (a motif) so the ear can grab it, then vary it so it doesn\'t bore.'
+    ]},
+    {t:'note',x:'<b>Tension and release in one line.</b> Even with no harmony, a single melody creates tension by moving away from the home note and rising in pitch, and release by returning and falling. The same home-and-away drama as harmony, drawn as a line.'},
+  ]},
+  { id:'m8l2', title:'Chord Tones vs Non-Chord Tones', mins:6, blocks:[
+    {t:'p',x:'This is the hinge between melody and harmony. At any moment, the notes of the current chord are <span class="term">chord tones</span> — they fuse with the harmony and feel stable. Every other note is a <span class="term">non-chord tone</span> — it creates momentary friction and wants to move.'},
+    {t:'p',x:'The craft of melody writing is largely about placement: <b>land chord tones on the strong beats</b> (so the melody and harmony agree where it matters), and <b>use non-chord tones on weak beats</b> to connect them with motion and color.'},
+    {t:'widget',label:'Melody meeting harmony',build:()=>melodyDemo(),
+      hint:'Play the melody alone, the chords alone, then together. The strong-beat notes lock into the chords; the in-between notes pass through smoothly.'},
+    {t:'p',x:'The most common non-chord tones: a <b>passing tone</b> steps between two chord tones; a <b>neighbor tone</b> steps away and back; a <b>suspension</b> holds over and resolves down. Each is a controlled bit of dissonance that makes the line feel alive rather than mechanical.'},
+    {t:'note',x:'<b>Melody and harmony as partners.</b> A melody note that clashes on a strong beat sounds like a wrong note; the same note on a weak beat sounds expressive. Nothing is inherently "wrong" — it\'s about <i>where</i> a note lands relative to the chord. Master that placement and you can write a line that sits convincingly over any progression.'},
+  ]},
+  { id:'m8q', title:'Module 8 Quiz', mins:5, quiz:{ questions:[
+    {q:'A melody\'s "contour" is…',
+     options:['Its volume','The shape of its rises and falls','Its key signature','Its tempo'], answer:1,
+     why:'Contour is the path the line traces up and down — often what makes a tune memorable.'},
+    {q:'Most singable melodies move primarily by…',
+     options:['Large leaps','Steps, with occasional leaps for drama','Repeated single notes','Random jumps'], answer:1,
+     why:'Mostly stepwise motion is smooth and singable; leaps are saved for emotional impact.'},
+    {q:'A "chord tone" in a melody is a note that…',
+     options:['Belongs to the chord sounding underneath','Is always the highest note','Is off the beat','Clashes with the harmony'], answer:0,
+     why:'Chord tones belong to the current chord — they fuse with the harmony and feel stable.'},
+    {q:'Good melodic practice is to place chord tones on…',
+     options:['Weak beats','Strong beats','Only the last beat','No particular beat'], answer:1,
+     why:'Strong-beat chord tones make melody and harmony agree where it matters most.'},
+    {q:'A passing tone is…',
+     options:['A non-chord tone that steps between two chord tones','A held chord','A loud accent','A key change'], answer:0,
+     why:'A passing tone steps smoothly between two chord tones on a weak beat — motion without clashing.'},
+    {q:'Whether a melody note sounds "wrong" depends mostly on…',
+     options:['How loud it is','Where it lands relative to the chord and beat','The instrument','The key'], answer:1,
+     why:'A clash on a strong beat sounds wrong; the same note on a weak beat sounds expressive. Placement is everything.'},
+    {q:'Two phrases arranged as a "question" then an "answer" create…',
+     options:['Polyrhythm','A sense of call-and-response that feels complete','A cadenza','A key change'], answer:1,
+     why:'Question-and-answer phrasing (unresolved then resolved) is why a melody feels like it\'s saying something.'},
+  ]}},
+]},
+
+/* ---------- MODULE 9 ---------- */
+{ n:9, track:'Extended Track', title:'Advanced Harmony',
+  blurb:'Modes, borrowing, secondary dominants, modulation',
+  intro:'The natural "level 2" and the highest-value addition for composing. Reach beyond the plain diatonic palette: recolor scales as modes, borrow chords from parallel keys, point dominants anywhere, and change key with control.',
+  lessons:[
+  { id:'m9l1', title:'Modes', mins:6, blocks:[
+    {t:'p',x:'Here\'s a beautiful trick hiding in the major scale. Play the white keys from C to C and you get C major. But play the same white keys from <b>D to D</b>, or <b>E to E</b> — same notes, different home base — and you get a completely different color. These are the <span class="term">modes</span>: seven rotations of one scale, each with its own personality.'},
+    {t:'p',x:'Because the home note moves, the pattern of steps around it changes, and so does the mood. Same ingredients, different recipe depending on where you start.'},
+    {t:'widget',label:'Explore the 7 modes',build:()=>modeExplorer(),
+      hint:'These are all built from C so you can hear the color directly. Listen for each mode\'s "characteristic note" — the one altered degree that gives it its flavor (Lydian\'s ♯4 floats; Phrygian\'s ♭2 darkens).'},
+    {t:'ul',x:[
+      '<b>Ionian</b> = major. <b>Aeolian</b> = natural minor. (You already know these two.)',
+      '<b>Dorian</b> — minor but brighter (raised 6th); the sound of "So What", much folk and funk.',
+      '<b>Mixolydian</b> — major but bluesy (flat 7th); the sound of countless rock and Celtic tunes.',
+      '<b>Lydian</b> — major but dreamy (sharp 4th); that floating film-score wonder.',
+      '<b>Phrygian</b> — dark and Spanish (flat 2nd). <b>Locrian</b> — unstable, rarely a home.'
+    ]},
+    {t:'note',x:'<b>Why modes matter for composing.</b> They let you write something that isn\'t quite major or minor — a specific emotional color. A progression that stays on D Dorian feels different from D minor, even using overlapping notes, because of which note feels like home.'},
+  ]},
+  { id:'m9l2', title:'Borrowing & Secondary Dominants', mins:6, blocks:[
+    {t:'p',x:'Two of the most useful ways to add spice while staying anchored in a key.'},
+    {t:'h',x:'Modal interchange (borrowed chords)'},
+    {t:'p',x:'You don\'t have to stay inside your key\'s diatonic chords. <span class="term">Modal interchange</span> means borrowing a chord from the <i>parallel</i> key (same root, opposite mode). In C major you can borrow chords from C minor for a sudden, bittersweet color — the most common being the minor iv.'},
+    {t:'widget',label:'Borrowing from the parallel minor',build:()=>modalInterchangeDemo(),
+      hint:'Compare the plain C–F–G–C with C–Fm–C. That minor iv (Fm) is the borrowed chord — that wistful ache is one of the most-loved sounds in pop ballads.'},
+    {t:'h',x:'Secondary dominants'},
+    {t:'p',x:'Any chord can be temporarily treated as a mini-tonic by aiming its own dominant at it. A <span class="term">secondary dominant</span> — written "V/V" (five of five) — borrows a dominant chord from outside the key to create a strong, surprising pull toward a chord that isn\'t the real tonic.'},
+    {t:'widget',label:'V of V',build:()=>secondaryDomDemo(),
+      hint:'C–Dm–G–C is diatonic and plain. Swap Dm for D7 and it becomes the "V of G" — a borrowed dominant that pulls hard into G, adding momentum and a touch of surprise.'},
+    {t:'note',x:'<b>The common thread.</b> Both techniques reach <i>just</i> outside the key for a moment, then return. That brief departure is what makes the home key feel richer when you come back — the same tension-and-release principle, now applied to the key itself.'},
+  ]},
+  { id:'m9l3', title:'Modulation', mins:5, blocks:[
+    {t:'p',x:'<span class="term">Modulation</span> is changing key in the middle of a piece — not borrowing a chord for a moment, but genuinely moving the sense of "home" to a new note. It\'s how music keeps a long form fresh and creates a feeling of lift or journey.'},
+    {t:'p',x:'The smoothest modulations use a <span class="term">pivot chord</span> — a chord that belongs to <i>both</i> the old key and the new one. You arrive on it in the old key, then reinterpret it in the new key and confirm the change with that key\'s V–I. Because neighbors on the circle of fifths share most of their chords, modulating to a nearby key (especially up a 5th) feels natural; jumping to a distant key feels dramatic.'},
+    {t:'widget',label:'Pivoting to a new key',build:()=>modulationDemo(),
+      hint:'The second button shifts from C major into G major. The D major chord (G\'s dominant, with its new F♯) is the hinge — once you hear that F♯, your sense of home has moved.'},
+    {t:'note',x:'<b>The cheapest trick in pop.</b> The "truck-driver\'s gear change" — bumping the whole song up a half or whole step for the final chorus — is modulation with no pivot, pure brute-force lift. It works because the abrupt new key injects fresh energy. Now you know what\'s actually happening when a song suddenly feels "higher".'},
+  ]},
+  { id:'m9q', title:'Module 9 Quiz', mins:6, quiz:{ questions:[
+    {q:'Modes are…',
+     options:['Completely new scales','Rotations of a scale, each starting on a different note for a different color','Only used in jazz','Faster scales'], answer:1,
+     why:'The 7 modes are the major scale started from each of its degrees — same notes, different home, different mood.'},
+    {q:'Which mode is "major but bluesy", with a flat 7th?',
+     options:['Dorian','Lydian','Mixolydian','Phrygian'], answer:2,
+     why:'Mixolydian = major with a ♭7 — the dominant, bluesy, rock/folk sound.'},
+    {q:'Modal interchange (borrowing) means using a chord from…',
+     options:['A random key','The parallel key (same root, opposite mode)','The relative key only','A different song'], answer:1,
+     why:'You borrow from the parallel key — e.g. pulling the minor iv from C minor while in C major.'},
+    {q:'A secondary dominant (V/V) is used to…',
+     options:['End a song','Create a strong pull toward a chord that isn\'t the tonic','Slow the tempo','Add a drum beat'], answer:1,
+     why:'It aims a borrowed dominant at a non-tonic chord, temporarily making that chord feel like home.'},
+    {q:'A pivot chord in modulation is one that…',
+     options:['Is the loudest','Belongs to both the old and new key','Is always the tonic','Has seven notes'], answer:1,
+     why:'A pivot belongs to both keys, letting you slip smoothly from one to the other.'},
+    {q:'Modulating to a key NEARBY on the circle of fifths feels…',
+     options:['Jarring','Smooth, because the keys share most of their notes','Impossible','The same as a distant key'], answer:1,
+     why:'Neighbors share most chords, so the move is smooth; distant keys share few and feel dramatic.'},
+    {q:'Listen — same notes, different home. This is a mode. Which one floats with a "dreamy ♯4"?', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.seq(buildMode(60,3),0.34,0.34)),
+     options:['Dorian','Phrygian','Lydian','Aeolian'], answer:2,
+     why:'Lydian — the raised 4th gives that floating, wondrous, film-score quality.'},
+  ]}},
+]},
+
+/* ---------- MODULE 10 ---------- */
+{ n:10, track:'Extended Track', title:'Rhythm & Meter',
+  blurb:'The time dimension — pulse, subdivision, groove',
+  intro:'Pitch is only half of music; rhythm is the other half. Treated as a first-class topic: how beats group into meter, how the beat subdivides, and how playing against the grid creates groove.',
+  lessons:[
+  { id:'m10l1', title:'Beat, Tempo & Meter', mins:5, blocks:[
+    {t:'p',x:'Underneath most music is a steady pulse — the <span class="term">beat</span>, the thing you tap your foot to. How fast those beats go is the <span class="term">tempo</span>, measured in beats per minute (BPM): 60 BPM is one beat per second; 120 is brisk pop; 70 is a slow ballad.'},
+    {t:'p',x:'Beats aren\'t all equal — they group into repeating patterns of strong and weak, and that grouping is the <span class="term">meter</span>. We feel a recurring accent: <b>ONE</b>-two-three-four, <b>ONE</b>-two-three-four. The strong beat (the "downbeat") marks the start of each group, called a <span class="term">bar</span> or measure.'},
+    {t:'p',x:'A <span class="term">time signature</span> writes this down as two stacked numbers. The top number is how many beats per bar; the bottom says what kind of note gets one beat. <b>4/4</b> (four beats per bar) is by far the most common — "common time". <b>3/4</b> gives the waltz lilt (ONE-two-three). <b>6/8</b> has a rolling, compound feel.'},
+    {t:'widget',label:'Hear different meters',build:()=>rhythmLab(),
+      hint:'Set 4/4, then 3/4, then 6/8 and play. The loud click is beat "1". Feel how the placement of that accent completely changes the character — march vs waltz vs roll.'},
+    {t:'note',x:'<b>Meter is felt, not just counted.</b> The same notes barred in 3/4 vs 4/4 feel different because your body anticipates the next downbeat. Meter is a grid of expectation — and the next lesson is about what happens when you play with that expectation.'},
+  ]},
+  { id:'m10l2', title:'Subdivision & Note Values', mins:5, blocks:[
+    {t:'p',x:'A beat isn\'t the smallest unit — you can split it. <span class="term">Subdivision</span> is dividing each beat into equal parts to get faster rhythms without speeding up the tempo. Split a beat in two and you have eighth notes; in four, sixteenth notes; in three, triplets.'},
+    {t:'p',x:'<span class="term">Note values</span> name these durations. A whole note lasts four beats (in 4/4), a half note two, a quarter note one, an eighth note half a beat, a sixteenth a quarter of a beat. Each step down the ladder is twice as fast — the same doubling logic as octaves, now in time instead of pitch.'},
+    {t:'widget',label:'Subdivide the beat',build:()=>rhythmLab(),
+      hint:'Keep 4/4 and step through Quarters → Eighths → Triplets → 16ths. The pulse stays the same; you\'re just filling each beat with more (or fewer) hits. Triplets vs eighths is the key feel difference between "straight" and "swung".'},
+    {t:'note',x:'<b>Rests count too.</b> Silence is rhythm. A rest is a note value you <i>don\'t</i> play, and skilled use of rests — leaving space — often does more than adding notes. The gap before a hit makes the hit land harder.'},
+    {t:'note',k:'code',x:'// Procedural lens: rhythm is a grid.\n// One bar of 4/4 at 16th resolution = 16 slots.\n// A pattern is just which slots are "on".\n// Tempo (BPM) sets the real-time length of each slot.'},
+  ]},
+  { id:'m10l3', title:'Syncopation, Groove & Polyrhythm', mins:6, blocks:[
+    {t:'p',x:'If meter is the grid of expected accents, <span class="term">syncopation</span> is deliberately accenting the <i>wrong</i> places — the off-beats, the gaps between the main pulses. This push-and-pull against the grid is the secret ingredient of <span class="term">groove</span>. It\'s why funk, reggae, ska, and most pop feel alive rather than mechanical.'},
+    {t:'widget',label:'Straight vs syncopated',build:()=>syncopationDemo(),
+      hint:'The straight version hits squarely on the beats — correct but stiff. The syncopated version accents the spaces between beats, and suddenly it has feel. Same tempo, completely different energy.'},
+    {t:'h',x:'Polyrhythm: two pulses at once'},
+    {t:'p',x:'A <span class="term">polyrhythm</span> layers two different beat divisions simultaneously — most classically <b>3 against 2</b>: one part divides the span into three, another into two, both starting and ending together. The ear can\'t fully resolve which is "the" beat, creating a shimmering, rolling complexity at the heart of much African, Latin, and progressive music.'},
+    {t:'widget',label:'3 against 2',build:()=>polyrhythmDemo(),
+      hint:'Hear the 2-pulse alone, then the 3-pulse alone, then both at once. They lock at the start and finish but disagree in the middle — that disagreement is the groove.'},
+    {t:'note',x:'<b>Metric ambiguity.</b> Composers sometimes blur where the downbeat is on purpose, so a passage can be heard in more than one meter at once. It\'s the rhythmic equivalent of an optical illusion — and a peek at the advanced edge of how rhythm creates tension all on its own, with no change in pitch at all.'},
+  ]},
+  { id:'m10q', title:'Module 10 Quiz', mins:6, quiz:{ questions:[
+    {q:'Tempo is measured in…',
+     options:['Beats per minute (BPM)','Hertz','Decibels','Bars'], answer:0,
+     why:'Tempo = how fast the beat goes, in BPM. 120 BPM is brisk pop; 60 is one beat per second.'},
+    {q:'In a 3/4 time signature, each bar has…',
+     options:['Three bars','Three beats','Four beats','Three songs'], answer:1,
+     why:'The top number is beats per bar — 3/4 = three beats per bar, the waltz feel.'},
+    {q:'Subdivision means…',
+     options:['Slowing the tempo','Splitting each beat into equal smaller parts','Changing key','Adding more instruments'], answer:1,
+     why:'Subdividing fills each beat with more hits (eighths, triplets, 16ths) without changing the tempo.'},
+    {q:'An eighth note lasts…',
+     options:['Eight beats','Two beats','Half a beat (in 4/4)','A whole bar'], answer:2,
+     why:'A quarter note = one beat, so an eighth note = half a beat. Each note value is twice as fast as the one above.'},
+    {q:'Syncopation creates groove by…',
+     options:['Accenting the off-beats / spaces between beats','Playing only on beat 1','Slowing down','Removing all accents'], answer:0,
+     why:'Emphasizing the off-beats pushes against the grid — that tension is groove.'},
+    {q:'A "3 against 2" polyrhythm is…',
+     options:['Three songs at once','Two different beat-divisions layered over the same span','A key change','A type of cadence'], answer:1,
+     why:'One part divides the span in three, another in two — both starting and ending together.'},
+    {q:'Listen — is this rhythm straight (on the beat) or syncopated?', sub:'Tap play.',
+     build:()=>earQ(()=>Audio_.pattern([{b:0,accent:true},{b:0.5,accent:false},{b:1.5,accent:true},{b:2.5,accent:true},{b:3,accent:false},{b:4,accent:true},{b:4.5,accent:false},{b:5.5,accent:true},{b:6.5,accent:true},{b:7,accent:false}],100)),
+     options:['Straight','Syncopated'], answer:1,
+     why:'The accents land between the beats — that\'s syncopation, the source of groove.'},
+  ]}},
+]},
+
+/* ---------- MODULE 11 ---------- */
+{ n:11, track:'Extended Track', title:'Texture & Arrangement',
+  blurb:'How multiple parts combine into a finished sound',
+  intro:'The final layer: how independent lines and voices combine. Texture is the weave of the parts; arrangement is how you distribute material across registers and instruments to shape emotion and clarity.',
+  lessons:[
+  { id:'m11l1', title:'Texture Types', mins:5, blocks:[
+    {t:'p',x:'<span class="term">Texture</span> describes how many independent musical lines are sounding and how they relate. There are three basic kinds, and most music is one of them or a blend.'},
+    {t:'ul',x:[
+      '<b>Monophony</b> — a single line, alone. One singer, an unaccompanied flute, a guitar riff with nothing under it. Pure and exposed.',
+      '<b>Homophony</b> — one main melody supported by accompaniment (chords) that moves <i>with</i> it. This is the texture of nearly all pop, rock and folk: a tune on top, chords beneath.',
+      '<b>Polyphony</b> — two or more independent melodies of equal importance woven together at once. A round like "Row Your Boat", a Bach fugue, interlocking guitar parts.'
+    ]},
+    {t:'widget',label:'Hear the three textures',build:()=>textureLab(),
+      hint:'The same little tune presented three ways: alone (mono), with chords beneath (homo), and against a second independent line (poly). Notice how much the texture alone changes the feeling.'},
+    {t:'note',x:'<b>Texture is a dial, not a box.</b> A song can move between textures for effect — a verse that\'s sparse and monophonic exploding into a full homophonic chorus, or a bridge where two vocal lines turn polyphonic. Changing texture is one of the strongest tools for shaping a song\'s energy.'},
+  ]},
+  { id:'m11l2', title:'Counterpoint & Arrangement', mins:6, blocks:[
+    {t:'p',x:'<span class="term">Counterpoint</span> is the craft behind polyphony: writing two or more melodic lines that are independent (each interesting on its own) yet agree harmonically (they sound good together). It\'s the most rigorous corner of theory, but one idea carries most of the weight.'},
+    {t:'widget',label:'Two lines in counterpoint',build:()=>counterpointDemo(),
+      hint:'Each line is a real melody on its own. Play them together: when the top rises, the bottom tends to fall. That contrary motion keeps the lines independent while staying consonant.'},
+    {t:'p',x:'The golden principle is <b>independence through contrary motion</b>: when voices move in opposite directions, the ear hears them as separate characters rather than one thickened line. Combine that with consonant intervals on the strong beats and you have the essence of good counterpoint.'},
+    {t:'h',x:'Arrangement: distributing the material'},
+    {t:'p',x:'<span class="term">Arrangement</span> is deciding <i>who plays what, where</i>. The same chords and melody can sound thin and cold or huge and warm depending on choices about register (high vs low), doubling (how many parts play the same note), spacing (how far apart the notes sit), and density (how much is happening at once).'},
+    {t:'widget',label:'Spacing changes everything',build:()=>arrangementDemo(),
+      hint:'The exact same C major chord: thin and high, wide and spread, or cramped low. Low notes packed close turn to mud — a key practical lesson: give the bass room.'},
+    {t:'note',x:'<b>Arrangement shapes emotion as much as the notes.</b> A melody alone in a high register feels fragile; doubled in octaves with full chords beneath, it feels triumphant — with zero change to the actual pitches. Knowing the notes is composing; knowing how to place them is arranging, and the two together are what make a finished piece.'},
+  ]},
+  { id:'m11q', title:'Module 11 Quiz', mins:5, quiz:{ questions:[
+    {q:'Monophony is…',
+     options:['A single line with no accompaniment','Melody plus chords','Two independent melodies','A type of chord'], answer:0,
+     why:'Monophony = one line, alone. A solo voice or unaccompanied instrument.'},
+    {q:'The texture of most pop and rock — a melody with chordal accompaniment beneath — is…',
+     options:['Monophony','Homophony','Polyphony','Counterpoint'], answer:1,
+     why:'Homophony: one main melody supported by accompaniment moving with it.'},
+    {q:'Polyphony means…',
+     options:['Many instruments playing the same note','Two or more independent melodies of equal importance at once','A loud texture','No melody'], answer:1,
+     why:'Polyphony weaves multiple independent melodic lines — a round, a fugue, interlocking parts.'},
+    {q:'The key principle for keeping contrapuntal lines independent is…',
+     options:['Parallel motion','Contrary motion (moving in opposite directions)','Playing in unison','Same rhythm always'], answer:1,
+     why:'Contrary motion makes the ear hear separate characters rather than one thick line.'},
+    {q:'Arrangement is mainly about…',
+     options:['Which notes to write','How to distribute notes across registers, doublings and density','The key signature','The tempo'], answer:1,
+     why:'Arrangement is who plays what, where — register, doubling, spacing, density.'},
+    {q:'Low notes packed closely together tend to sound…',
+     options:['Bright and clear','Muddy — they need wider spacing','Louder','Higher'], answer:1,
+     why:'Close-spaced low notes turn to mud; give the bass register room to breathe.'},
+    {q:'Listen — one melodic idea three ways. Which button gives polyphony?', sub:'Use the texture widget above, then answer.',
+     build:()=>el('div','whint','(Compare in the widget above.)'),
+     options:['The single line alone','The line with chords beneath','The two independent lines woven together','None'], answer:2,
+     why:'Polyphony = two independent melodies at once, each meaningful on its own.'},
+  ]}},
+]},
+];
+</script>
+</body>
+</html>
