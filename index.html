@@ -143,6 +143,49 @@ header{position:sticky;top:0;z-index:50;background:rgba(15,17,21,.86);
 .drill-choices .opt{margin:0;text-align:center;}
 .drill .feedback{margin-top:10px;}
 .drill-start{text-align:center;}
+.drill-set{font-size:.72rem;color:var(--faint);text-align:center;margin-top:8px;}
+.drill-anchor{font-size:.82rem;color:var(--warn);text-align:center;margin:8px 0 2px;}
+
+/* Segmented control (ladder stages) */
+.seg{display:flex;background:var(--bg3);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px;margin:4px 0 12px;}
+.seg button{flex:1;background:none;border:none;color:var(--dim);font-weight:700;font-size:.8rem;
+  padding:8px 4px;border-radius:8px;cursor:pointer;line-height:1.1;}
+.seg button.on{background:var(--accent2);color:#06251c;}
+.seg button:disabled{opacity:.35;cursor:default;}
+.seg .lock{font-size:.62rem;display:block;font-weight:600;opacity:.7;}
+
+/* Flashcard (Hear & Learn) */
+.flash{text-align:center;}
+.flash .fcard{background:var(--bg3);border:1px solid var(--line);border-radius:12px;padding:20px 14px;margin:10px 0;}
+.flash .fname{font-size:1.5rem;font-weight:800;color:var(--accent2);}
+.flash .fsub{color:var(--dim);font-size:.9rem;margin-top:4px;}
+.flash .fanchor{color:var(--warn);font-size:.85rem;margin-top:8px;}
+
+/* Home practice card */
+.praccard{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(126,224,192,.14),rgba(110,168,255,.10));
+  border:1px solid var(--accent2);border-radius:var(--r);padding:15px 16px;margin-bottom:12px;cursor:pointer;transition:transform .08s;}
+.praccard:active{transform:scale(.985);}
+.praccard .pic{width:42px;height:42px;flex:none;border-radius:12px;background:var(--accent2);color:#06251c;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+.praccard .pi{flex:1;min-width:0;}
+.praccard .pi h3{margin:0;font-size:1.02rem;}
+.praccard .pi p{margin:2px 0 0;color:var(--dim);font-size:.85rem;}
+
+/* Practice hub */
+.skill-row{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--line);
+  border-radius:var(--r2);padding:12px 14px;margin-bottom:9px;cursor:pointer;transition:transform .08s;}
+.skill-row:active{transform:scale(.985);}
+.skill-row.locked{opacity:.45;cursor:default;}
+.skill-row .si{flex:1;min-width:0;}
+.skill-row .si b{font-weight:600;font-size:.96rem;}
+.skill-row .si span{display:block;color:var(--faint);font-size:.78rem;margin-top:1px;}
+.stars{flex:none;color:var(--faint);font-size:.95rem;letter-spacing:1px;}
+.stars b{color:var(--warn);font-weight:400;}
+.mastery-bar{height:5px;background:var(--bg3);border-radius:5px;margin-top:6px;overflow:hidden;}
+.mastery-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:5px;transition:width .4s;}
+.sess-sum{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--line);
+  border-radius:10px;padding:10px 13px;margin-bottom:8px;font-size:.9rem;}
+.sess-sum .up{color:var(--good);font-size:.8rem;font-weight:700;}
 
 /* Footer nav */
 .fnav{position:fixed;bottom:0;left:0;right:0;background:rgba(15,17,21,.92);backdrop-filter:blur(12px);
@@ -517,6 +560,9 @@ function render(){
   if(route.view==='home'){ BackBtn.style.display='none'; renderHome(); }
   else if(route.view==='module'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'home'}); renderModule(route.m); }
   else if(route.view==='lesson'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'module',m:route.m}); renderLesson(route.m,route.l); }
+  else if(route.view==='practice'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'home'}); renderPractice(); }
+  else if(route.view==='drill'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'practice'}); renderDrillView(route.skill); }
+  else if(route.view==='session'){ BackBtn.style.display='block'; BackBtn.onclick=()=>go({view:'practice'}); renderSession(); }
 }
 
 function renderHome(){
@@ -525,6 +571,13 @@ function renderHome(){
   hero.appendChild(el('h1','','Music Theory'));
   hero.appendChild(el('p','','The recipes behind music — sounds, shapes, and the logic underneath. Tap any tile to begin.'));
   App.appendChild(hero);
+  // Practice hub entry
+  const anyUnlocked=SKILLS.some(skillUnlocked);
+  if(anyUnlocked){ const avg=SKILLS.filter(skillUnlocked).reduce((a,s)=>a+Mastery.level(s.id),0);
+    const card=el('div','praccard');
+    card.innerHTML='<div class="pic">🎯</div><div class="pi"><h3>Practice</h3><p>Adaptive drills &amp; ear training — the app picks what you need</p></div><div class="chev">›</div>';
+    card.onclick=()=>go({view:'practice'}); App.appendChild(card);
+  }
   let curTrack=null;
   COURSE.forEach((m,mi)=>{
     if(m.track!==curTrack){ curTrack=m.track; App.appendChild(el('div','track-h',curTrack)); }
@@ -538,7 +591,7 @@ function renderHome(){
     App.appendChild(row);
   });
   const foot=el('div'); foot.style.cssText='color:var(--faint);font-size:.8rem;text-align:center;margin:24px 0;';
-  foot.innerHTML='Progress is saved on this device. Look for the green <b style="color:var(--accent2)">PRACTICE</b> drills inside lessons — they\'re randomized, so you can return to them again and again.';
+  foot.innerHTML='Progress is saved on this device. The <b style="color:var(--accent2)">Practice</b> tab up top runs adaptive drills and ear training that the app picks for you — that\'s where the repetition happens.';
   App.appendChild(foot);
 }
 
@@ -1151,8 +1204,8 @@ const COURSE=[
       hint:'The black keys are the five sharps/flats. They cluster in groups of 2 and 3 — that visual grouping is how pianists orient instantly. Tap any key to hear it.'},
     {t:'p',x:'Notice something: between <b>E and F</b>, and between <b>B and C</b>, there is no black key — no note in between. Those two pairs are already as close as notes get. That detail is the seed of nearly everything in this course, so hold onto it.'},
     {t:'h',x:'Practice: name the note'},
-    {t:'p',x:'Knowing the twelve names cold makes everything later faster. Use this drill to build that fluency — a position lights up, you name it. It generates a fresh question every time, so it\'s worth returning to until naming any position is instant.'},
-    {t:'custom',build:()=>noteNameTrainer()},
+    {t:'p',x:'Knowing the twelve names cold makes everything later faster. A position lights up, you name it — a fresh question every time. This same drill lives in the <b>Practice</b> tab (on the home screen), which tracks your mastery and can mix it with everything else you\'ve learned. Come back to it there until naming any position is instant.'},
+    {t:'custom',build:()=>skillDrill('note-name',{intro:'A position lights up on the clock — name it.'})},
   ]},
   { id:'m1l2', title:'Half Steps & Whole Steps', mins:4, blocks:[
     {t:'p',x:'There are only two distances you need to start: the <span class="term">half step</span> and the <span class="term">whole step</span>. Every scale and chord is just a recipe written in these two units.'},
@@ -1223,8 +1276,8 @@ const COURSE=[
       hint:'Pick a root and an interval; the clock draws the shape and you hear both notes played apart, then together. The major 3rd vs minor 3rd contrast is the single most important sound in this course — compare them.'},
     {t:'note',x:'<b>The major/minor split.</b> Notice M3 (4 half steps) sounds bright and happy, while m3 (3 half steps) sounds darker and sadder. One half step of difference flips the entire mood. That one notch is what separates a major chord from a minor chord.'},
     {t:'h',x:'Practice: lock in the structure'},
-    {t:'p',x:'Start with the silent counting drill — it cements the name ↔ half-step link without needing your ears. Once that\'s comfortable, the next lesson adds the by-ear version. Both track your streak and best score, so they\'re built to be replayed.'},
-    {t:'custom',build:()=>intervalCountTrainer()},
+    {t:'p',x:'Start with this silent counting drill — it cements the name ↔ half-step link without needing your ears yet. The next lesson adds a full <i>by-ear</i> trainer that ramps up gently. Everything you practice here also feeds the <b>Practice</b> tab on the home screen, which tracks your mastery over time.'},
+    {t:'custom',build:()=>skillDrill('interval-count',{intro:'Read the interval name, recall its size in half steps. No sound — pure structure.'})},
   ]},
   { id:'m2l2', title:'Consonance & Dissonance', mins:5, blocks:[
     {t:'p',x:'Some pairs of notes sound sweet and restful; others sound tense and want to move. This is the <span class="term">consonance–dissonance</span> spectrum, and it\'s the engine behind tension and release — the thing that makes music feel like it\'s <i>going somewhere</i>.'},
@@ -1255,9 +1308,16 @@ const COURSE=[
     {t:'p',x:'The magic is that <b>an interval and its inversion always add up to 12 half steps</b> — a full octave. A perfect 5th is 7 half steps; its inversion is 12 − 7 = 5 half steps, a perfect 4th. A major 3rd (4) inverts to a minor 6th (8), since 4 + 8 = 12. A minor 2nd (1) inverts to a major 7th (11). The two are mirror images that complete each other.'},
     {t:'p',x:'There\'s a tidy pattern in the names too: the numbers always add up to 9 (5th + 4th = 9; 3rd + 6th = 9; 2nd + 7th = 9), and the quality flips — <b>major becomes minor, minor becomes major</b>, while <b>perfect stays perfect</b>. So a major 3rd inverts to a <i>minor</i> 6th, and a perfect 5th inverts to a <i>perfect</i> 4th.'},
     {t:'note',x:'<b>Why this matters.</b> It roughly halves what you have to learn: master the intervals up to the tritone and you get the larger ones for free by inversion. It also explains why a 4th and a 5th feel like close cousins, and why inverting the notes of a chord (coming in Module 7) keeps it recognizably the same chord — the relationships are preserved, just turned inside out.'},
-    {t:'h',x:'Practice: name what you hear'},
-    {t:'p',x:'This is the drill the quizzes are really preparing you for. It plays an interval and asks you to name it. Start on <b>Core (5)</b> — the 3rds, 4th, 5th and octave — and move to <b>All 12</b> once those are reliable. Chase a long streak, and come back to it between sessions; ear skills build through short, repeated practice more than through any single sitting.'},
-    {t:'custom',build:()=>intervalEarTrainer()},
+    {t:'h',x:'Practice: hearing intervals, step by step'},
+    {t:'p',x:'Identifying intervals by ear is a real skill, and it is unfair to throw you straight into naming them cold — so this trainer has <b>four stages</b>, left to right. Spend real time on the early ones; they make the last one possible:'},
+    {t:'ul',x:[
+      '<b>Learn</b> — no scoring. Just play each interval, hear its character, and tie it to a song. This is where the sounds get into your memory.',
+      '<b>Compare</b> — two intervals in a row; simply decide which was <i>bigger</i>. Much easier than naming, and it trains the underlying perception.',
+      '<b>Guided</b> — now name it, but with help: a small set, the song anchors shown, and a replay-and-explain on every miss.',
+      '<b>Identify</b> — the cold test. The set grows as your streak grows and shrinks when you slip, so it always meets you where you are.'
+    ]},
+    {t:'p',x:'Do not expect to start at "Identify". Work left to right over several short sittings — five focused minutes at a time beats one long grind. This trainer also lives in the <b>Practice</b> tab, which tracks your mastery and folds it into mixed review sessions.'},
+    {t:'custom',build:()=>intervalLadder()},
   ]},
   { id:'m2q', title:'Module 2 Quiz', mins:6, quiz:{ questions:[
     {q:'How many half steps are in a Perfect 5th?',
@@ -1302,6 +1362,9 @@ const COURSE=[
     {t:'widget',label:'Build & hear any major scale',build:()=>scaleBuilder('major'),
       hint:'Keep it on Major and change the root. The shape on the clock stays identical — it just rotates. That rotating shape IS the scale; the starting note just names the key.'},
     {t:'note',k:'code',x:'// Procedural lens: a scale is a step-pattern.\n// major = [2,2,1,2,2,2,1]  (half steps)\n// notes = scan-add from root, mod 12.\n// Rotating the start note = transposing to a new key.'},
+    {t:'h',x:'Practice: spell the scale'},
+    {t:'p',x:'The quiz expects you to actually know the notes of a scale, and that only comes from doing it — so here is a drill for exactly that. It names a key and asks for a specific note of its major scale. It also lives in the <b>Practice</b> tab and feeds your mastery score.'},
+    {t:'custom',build:()=>skillDrill('scale-spell',{intro:'Apply W-W-H-W-W-W-H from the named root to find the answer.'})},
   ]},
   { id:'m3l2', title:'Minor Scales', mins:5, blocks:[
     {t:'p',x:'If major is bright, <span class="term">minor</span> is its shadow — darker, more serious or melancholy. The key difference is a <b>flatter 3rd</b> (that major-vs-minor 3rd from Module 2, now built into the whole scale).'},
@@ -1316,17 +1379,34 @@ const COURSE=[
     {t:'note',x:'<b>Relative vs parallel.</b> A minor and C major use the exact same notes — they\'re <i>relative</i> (same notes, different home base). A minor and A major start on the same note but differ — they\'re <i>parallel</i>. Both relationships become powerful tools later for borrowing color between scales.'},
     {t:'note',k:'phys',x:'<b>Why the three minors exist.</b> Natural minor sounds great melodically but its 7th note sits a whole step below the root, so it doesn\'t "pull home" strongly. Harmonic minor raises that 7th to fix the harmony; melodic minor also raises the 6th to smooth out the awkward gap that creates. They\'re practical fixes, not arbitrary variants.'},
     {t:'h',x:'Practice: major or minor?'},
-    {t:'p',x:'Telling major from minor by ear is the most useful single skill at this stage — it\'s the difference between bright and dark, happy and sad, in almost everything you hear. This drill plays a scale at random and asks which it is. Keep at it until the answer is immediate.'},
-    {t:'custom',build:()=>majorMinorTrainer()},
+    {t:'p',x:'Telling major from minor by ear is the most useful single skill at this stage — the difference between bright and dark, happy and sad, in almost everything you hear. Start on <b>Learn</b> to soak in the two sounds, then test yourself. (Also in the <b>Practice</b> tab.)'},
+    {t:'custom',build:()=>majMinLadder()},
   ]},
-  { id:'m3l3', title:'Keys & the Circle of Fifths', mins:6, blocks:[
-    {t:'p',x:'A <span class="term">key</span> is the gravitational field a piece lives in: one note (the <b>tonic</b>) feels like home, and the scale built on it supplies the notes that belong. "In the key of G major" means G is home and you\'re drawing from the G major scale.'},
-    {t:'p',x:'Because each major scale has a fixed pattern, each key needs a specific set of sharps or flats to keep that pattern intact. That fixed set is the <span class="term">key signature</span>. C major needs none. G major needs exactly one sharp (F♯). Add it and G\'s scale follows W-W-H-W-W-W-H perfectly; leave it out and the pattern breaks.'},
-    {t:'widget',label:'The Circle of Fifths',build:()=>circleOfFifths(),
-      hint:'Moving clockwise, each key is a perfect 5th up and adds one sharp. Counter-clockwise adds flats. Neighbours share almost all their notes — which is why they sound related and why music modulates between them.'},
-    {t:'p',x:'The circle is the master map of keys. Two ideas make it click: <b>(1)</b> each step clockwise jumps up a 5th and adds one sharp (C→G→D→A…); <b>(2)</b> keys near each other on the circle share most of their notes, so moving between them sounds smooth. Distant keys (across the circle) share few notes and sound like a dramatic shift.'},
-    {t:'note',x:'<b>Why "fifths"?</b> Stacking perfect 5ths (the second-most consonant interval) is the most efficient way to tour all 12 notes — go up a 5th twelve times and you hit every note before returning home. The circle is literally that journey drawn as a clock. It\'s the same deep fact that makes 5ths sound so stable, now organizing every key in music.'},
-    {t:'p',x:'You don\'t need to memorize all of this now. The takeaway: keys aren\'t a random list — they\'re a connected map, and closeness on the circle equals similarity in sound. We\'ll use it constantly once we start moving between chords and keys.'},
+  { id:'m3l3', title:'Keys & Key Signatures', mins:7, blocks:[
+    {t:'p',x:'A <span class="term">key</span> is the gravitational field a piece lives in: one note — the <span class="term">tonic</span> — feels like "home", and the major (or minor) scale built on that tonic supplies the notes that belong. "In the key of G major" simply means G is home and the music draws on the G major scale. That\'s the whole idea of a key; the rest of this lesson is about one practical consequence of it.'},
+    {t:'h',x:'Where key signatures come from'},
+    {t:'p',x:'Here is the key insight, built up slowly. A major scale is <i>always</i> the pattern W-W-H-W-W-W-H. C major happens to fit that pattern using only white keys (C D E F G A B), so it needs no sharps or flats. But what about starting on a different note?'},
+    {t:'p',x:'Try building <b>G major</b>. Start on G and lay down W-W-H-W-W-W-H: G, A, B, C, D, E, and then… the 7th step needs to be a whole step above E, which is F♯ — not F. If you played a plain F here, the step from E to F would be only a half step and the step F to G a whole step, and the pattern would be wrong: it simply wouldn\'t sound like a major scale. So <b>G major is forced to use F♯</b>. There\'s no choice involved — the major pattern demands it.'},
+    {t:'p',x:'That forced note is the whole point. Rather than write a ♯ next to every single F in the music, we declare once at the start: "this piece is in G major, so every F is sharp." That standing declaration — the fixed set of sharps or flats a key always uses — is its <span class="term">key signature</span>. G major\'s signature is one sharp (F♯). C major\'s is empty.'},
+    {t:'widget',label:'See the forced notes for yourself',build:()=>keySignatureBuilder(),
+      hint:'Step through the keys. Each one keeps the previous key\'s sharps and is forced to add exactly one more. That "+1 sharp each step" is not a coincidence — it\'s the seed of the Circle of Fifths on the next screen.'},
+    {t:'note',x:'<b>Why they accumulate by one.</b> Going from C to G to D to A, each new key starts a fifth higher and needs exactly one new sharp while keeping all the old ones (G adds F♯; D keeps F♯ and adds C♯; A keeps both and adds G♯). Flats work the same way going the other direction. Memorising every signature is unnecessary once you see they\'re generated by this simple, regular process.'},
+    {t:'h',x:'Practice: key signatures'},
+    {t:'p',x:'A drill for the recall the quiz expects — how many sharps or flats a given key has. It starts with the common keys and widens out, and lives in the <b>Practice</b> tab too.'},
+    {t:'custom',build:()=>skillDrill('key-sig',{intro:'How many sharps or flats does the named key have? Starts easy, widens as you go.'})},
+  ]},
+  { id:'m3l4', title:'The Circle of Fifths', mins:6, blocks:[
+    {t:'p',x:'The <span class="term">Circle of Fifths</span> is just the previous lesson\'s discovery drawn as a clock. Put C at the top (no sharps or flats) and move clockwise: each step goes up a perfect 5th and adds exactly one sharp — G (1♯), D (2♯), A (3♯), and so on. Move counter-clockwise from C and each step adds a flat — F (1♭), B♭ (2♭), E♭ (3♭)… The two directions meet at the bottom. That\'s all the circle <i>is</i>: every key arranged by how many sharps or flats it has.'},
+    {t:'p',x:'But its real value is the three concrete jobs it does for you:'},
+    {t:'ul',x:[
+      '<b>1 · Look up any key\'s signature at a glance.</b> The number on each key tells you its sharps or flats, so you never have to rebuild the scale by hand.',
+      '<b>2 · See which keys are closely related.</b> Neighbours on the circle differ by just one note (they share six of seven), so they sound like close cousins. This is what you reach for when borrowing chords or changing key.',
+      '<b>3 · Explain why 5ths organise everything.</b> The circle is generated by stacking perfect 5ths — the most consonant interval after the octave — and twelve of them visit all twelve notes before returning home.'
+    ]},
+    {t:'widget',label:'Explore the circle',build:()=>circleExplorer(),
+      hint:'Tap any key: it plays the scale, spells out its exact sharps or flats, and lights up its two nearest neighbours — the keys it\'s most closely related to.'},
+    {t:'note',x:'<b>Closeness on the circle = similarity in sound.</b> Keys next to each other share almost all their notes, so moving between them feels smooth; keys on opposite sides share few notes and feel like a dramatic shift. Hold onto this — it is exactly what makes some key changes feel seamless and others feel like a jolt, which is the heart of modulation in Module 9.'},
+    {t:'p',x:'You don\'t need to memorise the whole wheel today. The takeaway: keys are not a random list but a connected map, and distance on that map predicts how related two keys sound. We\'ll lean on it constantly once chords start moving between keys.'},
   ]},
   { id:'m3q', title:'Module 3 Quiz', mins:6, quiz:{ questions:[
     {q:'What is the step pattern of the major scale?',
@@ -1378,8 +1458,8 @@ const COURSE=[
       hint:'Start by flipping between Major and Minor on the same root — listen to that one note move. Then try Diminished (notice the unease) and Augmented (notice it can\'t sit still).'},
     {t:'note',k:'code',x:'// Procedural lens: a chord is a set of offsets from a root.\n// major = [0,4,7]   minor = [0,3,7]\n// dim   = [0,3,6]   aug   = [0,4,8]\n// Transpose = add the root midi number to every offset.'},
     {t:'h',x:'Practice: name the chord quality'},
-    {t:'p',x:'Hearing a chord and instantly knowing its quality is a core skill for figuring out songs and writing your own. This drill plays a random chord and asks what it is. Start on <b>Triads</b>, and once major/minor/diminished/augmented are reliable, switch to <b>7th chords</b>.'},
-    {t:'custom',build:()=>chordQualityTrainer()},
+    {t:'p',x:'Hearing a chord and instantly knowing its quality is a core skill for figuring out songs and writing your own. Begin on <b>Learn</b> to fix the four sounds in your ear, then test yourself; the difficulty widens to include 7th chords as your mastery climbs. (Also in the <b>Practice</b> tab.)'},
+    {t:'custom',build:()=>chordEarLadder()},
   ]},
   { id:'m4l2', title:'7th Chords & Extensions', mins:5, blocks:[
     {t:'p',x:'Keep stacking 3rds past the triad and you add <b>color</b>. Add one more 3rd on top of a triad and you get a <span class="term">7th chord</span> — four notes, a richer and more sophisticated sound. These are the backbone of jazz, soul, and most film music.'},
@@ -1432,11 +1512,18 @@ const COURSE=[
   lessons:[
   { id:'m5l1', title:'Chords From the Scale', mins:5, blocks:[
     {t:'p',x:'Here\'s where scales and chords meet. Take a major scale and build a triad on <i>each</i> of its seven notes — using only notes from that scale. You get seven chords, and together they are the <span class="term">diatonic</span> chords: the home family of that key.'},
-    {t:'p',x:'In C major (all white keys), stacking 3rds on each degree gives: C, Dm, Em, F, G, Am, B°. Notice you didn\'t choose those qualities — they fell out automatically from the scale\'s uneven spacing.'},
+    {t:'p',x:'In C major (all white keys), stacking 3rds on each degree gives: C, Dm, Em, F, G, Am, B°. You didn\'t <i>choose</i> those qualities — and it\'s worth seeing exactly why each one comes out the way it does.'},
+    {t:'p',x:'Remember from Module 4 that a triad\'s quality depends on the two 3rds you stack: major-then-minor gives a major triad, minor-then-major gives a minor triad, minor-then-minor gives diminished. Because the scale\'s half steps sit in fixed places (E–F and B–C), each degree ends up with a fixed combination:'},
+    {t:'ul',x:[
+      '<b>I (C–E–G):</b> C→E is a major 3rd, E→G a minor 3rd → <b>major</b>.',
+      '<b>ii (D–F–A):</b> D→F is a minor 3rd (it crosses the E–F half step), F→A a major 3rd → <b>minor</b>.',
+      '<b>vii° (B–D–F):</b> B→D minor 3rd, D→F minor 3rd (both cross a half step) → <b>diminished</b> — the odd one out.'
+    ]},
+    {t:'p',x:'Work through all seven and the qualities fall out mechanically from where those two half steps land. You never memorise individual chords — the pattern <i>is</i> the scale\'s shape, seen through stacked 3rds.'},
     {t:'widget',label:'The chord family of C major',build:()=>diatonicExplorer('major'),
       hint:'Tap each chord, then play all seven up the scale. The pattern of major/minor/diminished is the fingerprint of every major key.'},
-    {t:'note',x:'<b>The quality pattern (major key):</b> <b>major, minor, minor, major, major, minor, diminished.</b> This never changes. Learn it once and you instantly know the chords of any major key — just apply it to that key\'s scale.'},
-    {t:'p',x:'Minor keys have their own fixed pattern. Build triads on the natural minor scale and you get: minor, diminished, major, minor, minor, major, major. Same idea, different fingerprint — which is why major and minor keys <i>feel</i> structurally different.'},
+    {t:'note',x:'<b>The quality pattern (major key):</b> <b>major, minor, minor, major, major, minor, diminished.</b> Because it comes from the scale\'s fixed shape, it never changes from key to key. Learn it once and you instantly know the chords of any major key — just apply it to that key\'s notes.'},
+    {t:'p',x:'Minor keys have their own fixed pattern, derived the same way from the natural-minor shape: minor, diminished, major, minor, minor, major, major. Same logic, different fingerprint — which is why major and minor keys <i>feel</i> structurally different.'},
   ]},
   { id:'m5l2', title:'Roman Numerals', mins:5, blocks:[
     {t:'p',x:'Musicians label these seven chords by their <i>position</i> in the scale using Roman numerals, not by letter name. This is one of the most powerful ideas in theory.'},
@@ -1446,6 +1533,9 @@ const COURSE=[
       hint:'Each button shows the Roman numeral and the actual C-major chord. The numeral is the portable idea; the letter is just where it lands in this key.'},
     {t:'note',x:'<b>This is the language of the rest of the course.</b> From here on we\'ll talk about progressions as "I–V–vi–IV" rather than naming chords. Once it clicks, you can transpose any song to any key in your head, and you\'ll see the same handful of patterns everywhere.'},
     {t:'note',k:'code',x:'// Procedural lens: diatonic chords = scan the scale,\n// take every 3rd note (degree, degree+2, degree+4).\n// The quality pattern emerges from the scale\'s step sizes\n// — no special-casing needed.'},
+    {t:'h',x:'Practice: diatonic chords'},
+    {t:'p',x:'This is exactly the recall the quiz expects — the quality of each Roman numeral, and which actual chord a numeral lands on in a given key. It starts with the key-independent pattern (the quality of each numeral) and graduates to naming chords in specific keys. Also in the <b>Practice</b> tab.'},
+    {t:'custom',build:()=>skillDrill('diatonic',{intro:'Recall the diatonic quality pattern, then apply it to real keys.'})},
   ]},
   { id:'m5q', title:'Module 5 Quiz', mins:6, quiz:{ questions:[
     {q:'The diatonic chords of a key are…',
@@ -1502,8 +1592,8 @@ const COURSE=[
       hint:'I–V–vi–IV alone underlies hundreds of pop songs. ii–V–I is the heartbeat of jazz. Play each and listen for where the tension sits and how it releases.'},
     {t:'note',x:'<b>Why these and not others?</b> Strong progressions move by descending 5ths (V→I, ii→V) or step into the tonic — motions the ear finds inevitable. Weak or "backward" moves (like V→IV) feel like swimming upstream. Function explains <i>why</i> some chord moves feel right and others feel off.'},
     {t:'h',x:'Practice: identify the cadence'},
-    {t:'p',x:'Cadences are easiest to learn by ear, because each has a distinct feeling of ending. This drill plays one of the four at random — full-stop, gentle "Amen", left-hanging, or surprise — and asks you to name it. Recognizing them is a big step toward hearing form in music.'},
-    {t:'custom',build:()=>cadenceTrainer()},
+    {t:'p',x:'Cadences are easiest to learn by ear, because each has a distinct feeling of ending. Start on <b>Learn</b> to hear the four side by side, then test yourself — it begins with just the two most different (authentic vs plagal) and adds the others as you go. Also in the <b>Practice</b> tab.'},
+    {t:'custom',build:()=>cadenceEarLadder()},
   ]},
   { id:'m6q', title:'Module 6 Quiz', mins:6, quiz:{ questions:[
     {q:'The three harmonic functions are…',
@@ -1649,8 +1739,8 @@ const COURSE=[
     ]},
     {t:'note',x:'<b>Why modes matter for composing.</b> They let you write something that isn\'t quite major or minor — a specific emotional color. A progression that stays on D Dorian feels different from D minor, even using overlapping notes, because of which note feels like home.'},
     {t:'h',x:'Practice: name the mode'},
-    {t:'p',x:'This is an advanced ear challenge — don\'t expect instant fluency. Each mode is played from the same root so the only thing changing is its characteristic note. Listen for that one altered degree (Lydian\'s raised 4th floating upward, Mixolydian\'s lowered 7th pulling down) and your accuracy will climb with practice.'},
-    {t:'custom',build:()=>modeTrainer()},
+    {t:'p',x:'An advanced ear challenge — don\'t expect instant fluency. Use <b>Learn</b> heavily here: each mode plays from the same root, so the only thing changing is its characteristic note. The test starts with just two modes and adds more as you improve. Also in the <b>Practice</b> tab.'},
+    {t:'custom',build:()=>modeEarLadder()},
   ]},
   { id:'m9l2', title:'Borrowing & Secondary Dominants', mins:6, blocks:[
     {t:'p',x:'Two of the most useful ways to add spice while staying anchored in a key.'},
@@ -1659,9 +1749,10 @@ const COURSE=[
     {t:'widget',label:'Borrowing from the parallel minor',build:()=>modalInterchangeDemo(),
       hint:'Compare the plain C–F–G–C with C–Fm–C. That minor iv (Fm) is the borrowed chord — that wistful ache is one of the most-loved sounds in pop ballads.'},
     {t:'h',x:'Secondary dominants'},
-    {t:'p',x:'Any chord can be temporarily treated as a mini-tonic by aiming its own dominant at it. A <span class="term">secondary dominant</span> — written "V/V" (five of five) — borrows a dominant chord from outside the key to create a strong, surprising pull toward a chord that isn\'t the real tonic.'},
+    {t:'p',x:'Recall from Module 6 that the strongest pull in music is V → I: a dominant chord resolving to the tonic a 4th above it. A <span class="term">secondary dominant</span> simply borrows that same powerful pull and aims it at a chord that <i>isn\'t</i> the tonic — momentarily treating some other chord as a temporary "home".'},
+    {t:'p',x:'Building one is mechanical. Pick the chord you want to lead into — say <b>G</b>, the V chord in C major. Ask: "what is G\'s own dominant?" A fifth above G is D, so G\'s dominant is a <b>D major (or D7) chord</b>. That D7 is not in the key of C (it contains F♯), but dropping it in just before G makes your ear briefly hear G as home. We label it <b>V/V</b> — "five of five", the dominant <i>of</i> the fifth chord. Any diatonic chord can get this treatment: V/ii, V/vi, and so on, each one borrowing the V→I pull and pointing it somewhere new.'},
     {t:'widget',label:'V of V',build:()=>secondaryDomDemo(),
-      hint:'C–Dm–G–C is diatonic and plain. Swap Dm for D7 and it becomes the "V of G" — a borrowed dominant that pulls hard into G, adding momentum and a touch of surprise.'},
+      hint:'C–Dm–G–C is diatonic and plain. Swap Dm for D7 and it becomes the "V of G" — a borrowed dominant that pulls hard into G. The F♯ inside D7 (foreign to C major) is what creates the extra pull and the touch of surprise.'},
     {t:'note',x:'<b>The common thread.</b> Both techniques reach <i>just</i> outside the key for a moment, then return. That brief departure is what makes the home key feel richer when you come back — the same tension-and-release principle, now applied to the key itself.'},
   ]},
   { id:'m9l3', title:'Modulation', mins:5, blocks:[
@@ -1717,6 +1808,9 @@ const COURSE=[
       hint:'Keep 4/4 and step through Quarters → Eighths → Triplets → 16ths. The pulse stays the same; you\'re just filling each beat with more (or fewer) hits. Triplets vs eighths is the key feel difference between "straight" and "swung".'},
     {t:'note',x:'<b>Rests count too.</b> Silence is rhythm. A rest is a note value you <i>don\'t</i> play, and skilled use of rests — leaving space — often does more than adding notes. The gap before a hit makes the hit land harder.'},
     {t:'note',k:'code',x:'// Procedural lens: rhythm is a grid.\n// One bar of 4/4 at 16th resolution = 16 slots.\n// A pattern is just which slots are "on".\n// Tempo (BPM) sets the real-time length of each slot.'},
+    {t:'h',x:'Practice: note values'},
+    {t:'p',x:'A quick recall drill for the durations — the quiz expects you to know that, in 4/4, an eighth note is half a beat and so on. It quizzes both directions (name → length and length → name). Also in the <b>Practice</b> tab.'},
+    {t:'custom',build:()=>skillDrill('note-value',{intro:'Match each note value to its length in beats (4/4).'})},
   ]},
   { id:'m10l3', title:'Syncopation, Groove & Polyrhythm', mins:6, blocks:[
     {t:'p',x:'If meter is the grid of expected accents, <span class="term">syncopation</span> is deliberately accenting the <i>wrong</i> places — the off-beats, the gaps between the main pulses. This push-and-pull against the grid is the secret ingredient of <span class="term">groove</span>. It\'s why funk, reggae, ska, and most pop feel alive rather than mechanical.'},
@@ -1806,6 +1900,398 @@ const COURSE=[
   ]}},
 ]},
 ];
+</script>
+
+<script>
+"use strict";
+/* ============================================================
+   MASTERY MODEL + SKILLS REGISTRY + PRACTICE HUB / SESSIONS
+   ============================================================ */
+const Mastery=(()=>{
+  const KEY='theory_mastery_v1';
+  let d=JSON.parse(localStorage.getItem(KEY)||'{}');
+  function save(){ localStorage.setItem(KEY,JSON.stringify(d)); }
+  function rec(id){ if(!d[id]) d[id]={n:0,c:0,recent:[],t:0}; return d[id]; }
+  const api={
+    record(id,ok){ const r=rec(id); r.n++; if(ok)r.c++; r.recent.push(ok?1:0); if(r.recent.length>10)r.recent.shift(); r.t=Date.now(); save(); },
+    level(id){ const r=d[id]; if(!r||r.n===0) return 0;
+      const acc=r.recent.reduce((a,b)=>a+b,0)/r.recent.length;
+      const cap=Math.min(5,1+Math.floor(r.n/3));
+      return Math.max(1,Math.min(cap,Math.round(acc*5))); },
+    acc(id){ const r=d[id]; if(!r||!r.recent.length) return 0; return r.recent.reduce((a,b)=>a+b,0)/r.recent.length; },
+    attempts(id){ return (d[id]&&d[id].n)||0; },
+    last(id){ return (d[id]&&d[id].t)||0; },
+    weight(id){ const lvl=api.level(id); const stale=Date.now()-api.last(id);
+      const staleBonus=Math.min(2, stale/(1000*60*60*24));
+      return (5-lvl) + (api.attempts(id)===0?3:0) + staleBonus*0.5 + 0.3; }
+  };
+  return api;
+})();
+function stars(l){ l=Math.max(0,Math.min(5,Math.round(l))); return '<span class="stars"><b>'+'★'.repeat(l)+'</b>'+'☆'.repeat(5-l)+'</span>'; }
+
+/* ---- leveled question generators (shared by lessons, hub & sessions) ---- */
+function keyRootPc(k){ return (((NAT[k[0]]+(k[1]==='#'?1:k[1]==='b'?-1:0))%12)+12)%12; }
+
+const IV_ORDER=[ // easy -> hard, with song anchors
+ {st:7, n:'Perfect 5th', a:'"Twinkle Twinkle" / Star Wars'},
+ {st:12,n:'Octave',      a:'"Some-where" (West Side Story)'},
+ {st:4, n:'Major 3rd',   a:'"When the Saints Go Marching In"'},
+ {st:3, n:'Minor 3rd',   a:'"Greensleeves" / "Hey Jude" title'},
+ {st:5, n:'Perfect 4th', a:'"Here Comes the Bride"'},
+ {st:9, n:'Major 6th',   a:'"My Bonnie Lies Over the Ocean"'},
+ {st:2, n:'Major 2nd',   a:'"Happy Birthday" (first two notes)'},
+ {st:8, n:'Minor 6th',   a:'"The Entertainer" (the big leap)'},
+ {st:6, n:'Tritone',     a:'"The Simp-sons" theme'},
+ {st:10,n:'Minor 7th',   a:'Star Trek theme (opening leap)'},
+ {st:11,n:'Major 7th',   a:'"Take On Me" (chorus leap)'},
+ {st:1, n:'Minor 2nd',   a:'"Jaws" theme'},
+];
+function ivPool(level){ const sizes=[3,4,5,7,9,12]; return IV_ORDER.slice(0,sizes[Math.max(0,Math.min(5,level))]); }
+function qInterval(level,guided){ const pool=ivPool(level); const c=pool[randInt(pool.length)];
+  const opts=shuffle([c,...pickN(pool.filter(x=>x!==c),Math.min(3,pool.length-1))]);
+  const root=60+randInt(8);
+  const q={ play:()=>Audio_.interval(root,root+c.st), choices:opts.map(o=>o.n), answer:opts.indexOf(c),
+    why:'A '+c.n+' — '+c.st+' half steps. Sounds like '+c.a+'.' };
+  if(guided) q.refs=opts.map(o=>'♪ <b>'+o.n+'</b> — '+o.a);
+  return q;
+}
+function ivCompareQ(){ const pool=IV_ORDER.slice(0,8); let a=pool[randInt(pool.length)], b=pool[randInt(pool.length)];
+  while(b.st===a.st) b=pool[randInt(pool.length)];
+  const root=60+randInt(6);
+  return { play:()=>{ Audio_.seq([root,root+a.st],0.45,0.42); setTimeout(()=>Audio_.seq([root,root+b.st],0.45,0.42),1400); },
+    choices:['The 1st was bigger','The 2nd was bigger'], answer: a.st>b.st?0:1,
+    why:'1st was a '+a.n+' ('+a.st+'), 2nd a '+b.n+' ('+b.st+').' };
+}
+function qIntervalCount(level){ const c=IV_ORDER[randInt(IV_ORDER.length)];
+  const nums=shuffle([c.st,...pickN([1,2,3,4,5,6,7,8,9,10,11,12].filter(n=>n!==c.st),3)]);
+  return { prompt:'How many half steps in a '+c.n+'?', choices:nums.map(String), answer:nums.indexOf(c.st),
+    why:'A '+c.n+' = '+c.st+' half steps.' };
+}
+function qNoteName(level){ const pc=randInt(12); const hi={}; hi[pc]='root';
+  const wrap=el('div'); wrap.appendChild(Clock({highlight:hi,static:true}));
+  const correct=SHARP[pc]; const opts=shuffle([correct,...pickN(SHARP.filter(n=>n!==correct),3)]);
+  return { prompt:wrap, play:()=>Audio_.note(60+pc,0.8), choices:opts, answer:opts.indexOf(correct),
+    why:'The lit position (clockwise from C at top) is '+correct+'.' };
+}
+function qMajMin(level){ const types= level>=4? [['major','Major'],['natminor','Minor'],['harmonicminor','Harmonic minor']]
+    : [['major','Major'],['natminor','Minor']];
+  const t=types[randInt(types.length)]; const root=60+randInt(8); const opts=shuffle(types.map(x=>x[1]));
+  return { prompt:'Major or minor?', play:()=>Audio_.seq(buildScale(root,t[0]),0.32,0.32), choices:opts,
+    answer:opts.indexOf(t[1]), why:'A '+t[1].toLowerCase()+' scale.' };
+}
+const SPELL_KEYS=['C','G','D','A','E']; // sharp keys only so SHARP spelling is correct
+function qScaleSpell(level){ const keys= level<3? SPELL_KEYS.slice(0,3):SPELL_KEYS; const k=keys[randInt(keys.length)];
+  const deg= 2+randInt(level<3?3:6); const scale=buildScale(60+keyRootPc(k),'major');
+  const note=SHARP[scale[deg-1]%12]; const opts=shuffle([note,...pickN(SHARP.filter(n=>n!==note),3)]);
+  const ord=['1st','2nd','3rd','4th','5th','6th','7th'][deg-1];
+  return { prompt:'In '+k+' major, what is the '+ord+' note?', choices:opts, answer:opts.indexOf(note),
+    why:k+' major = '+scale.slice(0,7).map(m=>SHARP[m%12]).join(' ')+'. The '+ord+' is '+note+'.' };
+}
+function qKeySig(level){ const keys= level<3? ['C','G','D','F','A'] : CIRCLE.slice();
+  const k=keys[randInt(keys.length)]; const sig=KEYSIG[k], typ=KEYSIGTYPE[k];
+  const ans= sig===0?'None (0)': sig+' '+(typ==='#'?'sharp':'flat')+(sig>1?'s':'');
+  const distract=['None (0)','1 sharp','2 sharps','3 sharps','4 sharps','1 flat','2 flats','3 flats'];
+  const opts=shuffle([ans,...pickN(distract.filter(x=>x!==ans),3)]);
+  return { prompt:'How many sharps or flats does '+k+' major have?', choices:opts, answer:opts.indexOf(ans),
+    why:k+' major has '+ans.toLowerCase()+'.' };
+}
+function diatonicNames(k){ return MAJ_DIATONIC.map((q,i)=>{ const t=diatonicTriad(60+keyRootPc(k),'major',i); return SHARP[t[0]%12]+CHORDS[q.q].sym; }); }
+function qDiatonic(level){
+  if(level<3){ const d=randInt(7); const q=MAJ_DIATONIC[d]; const qual={maj:'Major',min:'Minor',dim:'Diminished'}[q.q];
+    const opts=shuffle(['Major','Minor','Diminished']);
+    return { prompt:'In any major key, the '+q.rn+' chord is…', choices:opts, answer:opts.indexOf(qual),
+      why:q.rn+' is '+qual.toLowerCase()+'. Pattern: I ii iii IV V vi vii° = maj min min maj maj min dim.' };
+  }
+  const keys=SPELL_KEYS; const k=keys[randInt(keys.length)]; const d=randInt(7); const q=MAJ_DIATONIC[d];
+  const tri=diatonicTriad(60+keyRootPc(k),'major',d); const name=SHARP[tri[0]%12]+CHORDS[q.q].sym;
+  const opts=shuffle([name,...pickN(diatonicNames(k).filter(x=>x!==name),3)]);
+  return { prompt:'In '+k+' major, which chord is '+q.rn+'?', choices:opts, answer:opts.indexOf(name),
+    play:()=>Audio_.arpThenBlock(tri), why:q.rn+' in '+k+' major = '+name+'.' };
+}
+function qChordQuality(level){ const set= level<3? [['maj','Major'],['min','Minor'],['dim','Diminished'],['aug','Augmented']]
+    : [['maj','Major'],['min','Minor'],['dim','Diminished'],['aug','Augmented'],['maj7','Major 7th'],['min7','Minor 7th'],['dom7','Dominant 7th']];
+  const c=set[randInt(set.length)]; const root=60+randInt(6);
+  const opts=shuffle([c[1],...pickN(set.filter(s=>s!==c).map(s=>s[1]),3)]);
+  return { prompt:'What chord quality?', play:()=>Audio_.arpThenBlock(buildChord(root,c[0])), choices:opts,
+    answer:opts.indexOf(c[1]), why:'A '+c[1]+' chord.' };
+}
+function qCadence(level){ const C=[{d:[4,0],n:'Authentic (V–I)'},{d:[3,0],n:'Plagal (IV–I)'},{d:[0,4],n:'Half (I–V)'},{d:[4,5],n:'Deceptive (V–vi)'}];
+  const pool= level<2? C.slice(0,2) : C; const c=pool[randInt(pool.length)]; const opts=shuffle(pool.map(x=>x.n));
+  return { prompt:'Which cadence?', play:()=>Audio_.progression(c.d.map(d=>diatonicTriad(60,'major',d)),0.95,0.9),
+    choices:opts, answer:opts.indexOf(c.n), why:'The '+c.n+' cadence.' };
+}
+const MODE_ORDER=[5,0,4,1,3,2]; // Aeolian, Ionian, Mixolydian, Dorian, Lydian, Phrygian
+function qMode(level){ const n=Math.min(MODE_ORDER.length,2+level); const pool=MODE_ORDER.slice(0,n).map(r=>MODES[r]);
+  const c=pool[randInt(pool.length)]; const opts=shuffle([c,...pickN(pool.filter(m=>m!==c),Math.min(3,pool.length-1))]);
+  return { prompt:'Which mode? (all from the same root)', play:()=>Audio_.seq(buildMode(60,c.rot),0.32,0.32),
+    choices:opts.map(m=>m.name+(m.alias?' ('+m.alias+')':'')), answer:opts.indexOf(c), why:c.name+' — characteristic note '+c.char+'.' };
+}
+const NOTEVALS=[['Whole note','4 beats'],['Half note','2 beats'],['Quarter note','1 beat'],['Eighth note','½ beat'],['Sixteenth note','¼ beat']];
+function qNoteValue(level){ const it=NOTEVALS[randInt(NOTEVALS.length)];
+  if(Math.random()<0.5){ const opts=shuffle(NOTEVALS.map(x=>x[1]));
+    return { prompt:'In 4/4, how long is a '+it[0].toLowerCase()+'?', choices:opts, answer:opts.indexOf(it[1]), why:it[0]+' = '+it[1]+' in 4/4.' }; }
+  const opts=shuffle(NOTEVALS.map(x=>x[0]));
+  return { prompt:'In 4/4, which note lasts '+it[1]+'?', choices:opts, answer:opts.indexOf(it[0]), why:it[1]+' = '+it[0].toLowerCase()+'.' };
+}
+
+const SKILLS=[
+ {id:'note-name',     name:'Note names',          module:1, ear:false, make:qNoteName},
+ {id:'interval-count',name:'Interval sizes',       module:2, ear:false, make:qIntervalCount},
+ {id:'interval-ear',  name:'Intervals by ear',     module:2, ear:true,  make:qInterval},
+ {id:'maj-min',       name:'Major vs minor (ear)', module:3, ear:true,  make:qMajMin},
+ {id:'scale-spell',   name:'Scale spelling',       module:3, ear:false, make:qScaleSpell},
+ {id:'key-sig',       name:'Key signatures',       module:3, ear:false, make:qKeySig},
+ {id:'chord-quality', name:'Chord quality (ear)',  module:4, ear:true,  make:qChordQuality},
+ {id:'diatonic',      name:'Diatonic chords',      module:5, ear:false, make:qDiatonic},
+ {id:'cadence',       name:'Cadences (ear)',       module:6, ear:true,  make:qCadence},
+ {id:'mode',          name:'Modes (ear)',          module:9, ear:true,  make:qMode},
+ {id:'note-value',    name:'Note values',          module:10,ear:false, make:qNoteValue},
+];
+function skillById(id){ return SKILLS.find(s=>s.id===id); }
+function skillUnlocked(s){ const mod=COURSE[s.module-1]; return s.module===1 || (mod&&mod.lessons.some(l=>Progress.done(l.id))); }
+
+/* ---- generic adaptive drill ---- */
+function headBadge(txt){ const h=el('div','drill-head'); h.innerHTML='<span class="drill-badge">'+txt+'</span><span class="drill-score"></span>'; return h; }
+
+function LeveledDrill(cfg){
+  const box=el('div','drill'); const skill=cfg.skillId; const BK='theory_best_'+skill+(cfg.badge?('_'+cfg.badge):'');
+  let streak=0, best=+(localStorage.getItem(BK)||0), answered=false, q=null;
+  let lvl = cfg.fixedLevel!=null? cfg.fixedLevel : Math.max(0,Math.min(5,Mastery.level(skill)));
+  const head=headBadge(cfg.badge||'PRACTICE'); box.appendChild(head);
+  if(cfg.intro) box.appendChild(el('div','drill-intro',cfg.intro));
+  const stage=el('div','drill-stage'); box.appendChild(stage);
+  const refsBox=el('div'); box.appendChild(refsBox);
+  const choices=el('div','drill-choices'); box.appendChild(choices);
+  const fb=el('div','feedback'); box.appendChild(fb);
+  const ctrl=el('div','btnrow'); box.appendChild(ctrl);
+  const setline=el('div','drill-set'); box.appendChild(setline);
+  function setHead(){ head.querySelector('.drill-score').innerHTML='Streak: <b>'+streak+'</b> &nbsp;·&nbsp; Best: <b>'+best+'</b>'; }
+  function setLine(){ if(cfg.showLevel===false){ setline.textContent=''; return; }
+    setline.textContent='Difficulty '+(lvl+1)+' / 6'+(cfg.fixedLevel==null?' · grows with your streak':''); }
+  function newQ(){ answered=false; q=cfg.make(lvl); stage.innerHTML=''; choices.innerHTML=''; ctrl.innerHTML=''; fb.className='feedback'; refsBox.innerHTML='';
+    if(q.prompt) stage.appendChild(typeof q.prompt==='string'?el('div','drill-prompt',q.prompt):q.prompt);
+    if(q.play) stage.appendChild(PlayBtn(cfg.playLabel||'Play',()=>q.play()));
+    if(q.refs){ const t=el('div','drill-anchor'); t.innerHTML=q.refs.join('<br>'); refsBox.appendChild(t); }
+    choices.style.gridTemplateColumns=q.choices.length%2===1?'1fr':'1fr 1fr';
+    q.choices.forEach((c,idx)=>{ const b=el('button','opt',c); choices.appendChild(b);
+      b.onclick=()=>{ if(answered)return; answered=true; const ok=idx===q.answer;
+        if(ok){ b.classList.add('correct'); streak++; if(streak>best){best=streak;localStorage.setItem(BK,best);} if(cfg.fixedLevel==null && streak%3===0) lvl=Math.min(5,lvl+1); }
+        else { b.classList.add('wrong'); choices.children[q.answer].classList.add('correct'); streak=0; if(cfg.fixedLevel==null) lvl=Math.max(0,lvl-1); }
+        Array.prototype.forEach.call(choices.children,(bb,j)=>{ if(j!==idx&&j!==q.answer) bb.classList.add('dim'); bb.disabled=true; });
+        if(cfg.record!==false) Mastery.record(skill,ok);
+        setHead(); setLine();
+        fb.className='feedback show '+(ok?'ok':'no'); fb.innerHTML=(ok?'<b>Correct.</b> ':'<b>Not quite.</b> ')+(q.why||'');
+        if(q.play) ctrl.appendChild(PlayBtn('Replay',()=>q.play(),'sec'));
+        const nx=el('button','btn','Next →'); nx.onclick=newQ; ctrl.appendChild(nx);
+      };
+    });
+  }
+  setHead(); setLine(); newQ(); return box;
+}
+function skillDrill(id,opts){ const s=skillById(id);
+  return LeveledDrill(Object.assign({skillId:id, playLabel:s.ear?'Play':'Hear it', make:(lvl)=>s.make(lvl)}, opts||{})); }
+
+/* ---- Hear & Learn flashcards ---- */
+function flashLearn(items,cfg){
+  const box=el('div','drill'); box.appendChild(headBadge('LEARN'));
+  if(cfg&&cfg.intro) box.appendChild(el('div','drill-intro',cfg.intro));
+  const flash=el('div','flash'); box.appendChild(flash); let i=0;
+  function draw(){ const it=items[((i%items.length)+items.length)%items.length]; flash.innerHTML='';
+    const card=el('div','fcard'); card.innerHTML='<div class="fname">'+it.name+'</div>'+(it.sub?'<div class="fsub">'+it.sub+'</div>':'')+(it.anchor?'<div class="fanchor">♪ '+it.anchor+'</div>':'');
+    flash.appendChild(card);
+    const row=el('div','btnrow');
+    row.appendChild(PlayBtn('Hear it',()=>it.play()));
+    const nx=el('button','btn sec','Next ▸'); nx.onclick=()=>{ i++; draw(); }; row.appendChild(nx);
+    flash.appendChild(row);
+  }
+  draw(); return box;
+}
+
+/* ---- Interval ear-training LADDER (4 stages) ---- */
+function intervalLadder(){
+  const box=el('div'); const seg=el('div','seg'); box.appendChild(seg);
+  const body=el('div'); box.appendChild(body);
+  const stages=['Learn','Compare','Guided','Identify'];
+  let cur=0;
+  function draw(){ seg.innerHTML='';
+    stages.forEach((s,i)=>{ const b=el('button',i===cur?'on':'',s); b.onclick=()=>{cur=i;draw();}; seg.appendChild(b); });
+    body.innerHTML='';
+    if(cur===0){ const items=IV_ORDER.slice(0,6).map(iv=>({name:iv.n, sub:iv.st+' half steps', anchor:iv.a, play:()=>Audio_.interval(60,60+iv.st)}));
+      body.appendChild(flashLearn(items,{intro:'No score, no pressure. Play each interval, hear its character, and link it to the song. Cycle through a few times before moving on.'})); }
+    else if(cur===1){ body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'COMPARE', record:false, showLevel:false, fixedLevel:0,
+      intro:'Two intervals, one after another. Which was bigger? This trains relative size — a much gentler first step than naming.',
+      playLabel:'Play both', make:()=>ivCompareQ() })); }
+    else if(cur===2){ body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'GUIDED', showLevel:false, fixedLevel:1,
+      intro:'Now name it — with help. The lower note is your reference, the song anchors for each choice are shown, and the set is small. Wrong answers replay and explain.',
+      playLabel:'Play interval', make:(lvl)=>qInterval(lvl,true) })); }
+    else { body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'IDENTIFY',
+      intro:'The real test: name the interval cold, no anchors. The set grows as your streak grows and shrinks when you slip — and this is what builds your mastery score.',
+      playLabel:'Play interval', make:(lvl)=>qInterval(lvl,false) })); }
+  }
+  draw(); return box;
+}
+
+/* ---- Generic ear ladder (Learn → Guided → Identify) for chords/cadences/modes/major-minor ---- */
+function earLadder(skillId, learnItems){
+  const box=el('div'); const seg=el('div','seg'); box.appendChild(seg);
+  const body=el('div'); box.appendChild(body);
+  const stages=['Learn','Guided','Identify']; let cur=0;
+  function draw(){ seg.innerHTML='';
+    stages.forEach((s,i)=>{ const b=el('button',i===cur?'on':'',s); b.onclick=()=>{cur=i;draw();}; seg.appendChild(b); });
+    body.innerHTML='';
+    if(cur===0){ body.appendChild(flashLearn(learnItems,{intro:'Play each one and learn its sound before testing yourself. No score here.'})); }
+    else if(cur===1){ body.appendChild(LeveledDrill({skillId, badge:'GUIDED', showLevel:false, fixedLevel:0, playLabel:'Play',
+      intro:'Identify it from a small set. Wrong answers replay and explain. Build a streak to feel ready for the cold test.',
+      make:(lvl)=>skillById(skillId).make(lvl) })); }
+    else { body.appendChild(LeveledDrill({skillId, badge:'IDENTIFY', playLabel:'Play',
+      intro:'Name it cold. Difficulty adapts to your streak and feeds your mastery score.',
+      make:(lvl)=>skillById(skillId).make(lvl) })); }
+  }
+  draw(); return box;
+}
+function chordEarLadder(){ return earLadder('chord-quality',
+  [['maj','Major','bright, happy, resolved'],['min','Minor','darker, sadder'],['dim','Diminished','tense, unstable'],['aug','Augmented','strange, suspended']]
+  .map(([t,n,s])=>({name:n, sub:s, play:()=>Audio_.arpThenBlock(buildChord(60,t))}))); }
+function majMinLadder(){ return earLadder('maj-min',
+  [['major','Major','bright — happy'],['natminor','Minor','dark — sad']].map(([k,n,s])=>({name:n,sub:s,play:()=>Audio_.seq(buildScale(60,k),0.32,0.32)}))); }
+function cadenceEarLadder(){ return earLadder('cadence',
+  [[[4,0],'Authentic (V–I)','the full stop'],[[3,0],'Plagal (IV–I)','the gentle "Amen"'],[[0,4],'Half (I–V)','left hanging'],[[4,5],'Deceptive (V–vi)','the surprise']]
+  .map(([d,n,s])=>({name:n,sub:s,play:()=>Audio_.progression(d.map(x=>diatonicTriad(60,'major',x)),0.95,0.9)}))); }
+function modeEarLadder(){ return earLadder('mode',
+  MODE_ORDER.map(r=>MODES[r]).map(m=>({name:m.name+(m.alias?' ('+m.alias+')':''), sub:'characteristic '+m.char+' — '+m.mood, play:()=>Audio_.seq(buildMode(60,m.rot),0.32,0.32)}))); }
+
+/* ---- Smart session ---- */
+function weightedPick(arr,avoidId){ let pool=arr; if(arr.length>1&&avoidId) pool=arr.filter(s=>s.id!==avoidId);
+  const ws=pool.map(s=>Mastery.weight(s.id)); const total=ws.reduce((a,b)=>a+b,0); let r=Math.random()*total;
+  for(let i=0;i<pool.length;i++){ r-=ws[i]; if(r<=0) return pool[i]; } return pool[pool.length-1]; }
+function buildSession(n){ const avail=SKILLS.filter(skillUnlocked); const queue=[];
+  for(let i=0;i<n;i++){ queue.push(weightedPick(avail, queue.length?queue[queue.length-1].id:null)); } return queue; }
+
+/* ============================================================
+   KEYS — rewritten interactive widgets for Module 3 Lesson 3
+   ============================================================ */
+function keySignatureBuilder(){
+  const box=el('div'); let k='G';
+  box.appendChild(el('div','wlabel','Pick a key. Watch which notes are FORCED to become sharp to keep the major-scale shape.'));
+  box.appendChild(chipRow(['C','G','D','A','E','B'].map(x=>({label:x,val:x})),1,v=>{k=v;upd();}));
+  const disp=el('div'); box.appendChild(disp);
+  const info=el('div','whint'); box.appendChild(info);
+  const row=el('div','btnrow'); row.appendChild(PlayBtn('Play this scale',()=>Audio_.seq(buildScale(60+keyRootPc(k),'major'),0.4,0.4))); box.appendChild(row);
+  function upd(){ const full=buildScale(60+keyRootPc(k),'major'); const seven=full.slice(0,7);
+    const hi={}; full.forEach((m,i)=>hi[m]=i===0?'root':( [1,3,6,8,10].includes(m%12)?'hi3':'hi'));
+    disp.innerHTML=''; disp.appendChild(Piano({low:60,high:Math.max(...full)+1,highlight:hi}));
+    const names=seven.map(m=>SHARP[m%12]); const sharps=names.filter(n=>n.includes('#'));
+    info.innerHTML='<b>'+k+' major:</b> '+names.join(' ')+'<br>'+(sharps.length
+      ? '<span style="color:var(--warn)">Forced sharp'+(sharps.length>1?'s':'')+': '+sharps.join(', ')+'</span> — so <b>'+k+' major\'s key signature is '+sharps.length+' sharp'+(sharps.length>1?'s':'')+'</b>.'
+      : '<span style="color:var(--accent2)">No sharps or flats — all white keys. C is the one key whose signature is empty.</span>');
+  }
+  upd(); return box;
+}
+function circleExplorer(){
+  const box=el('div'); box.appendChild(el('div','wlabel','Tap a key: hear its scale, see its sharps/flats spelled out, and find its closest relatives (the highlighted neighbours).'));
+  const size=320,cx=160,cy=160,R=128,r=27; const ang=i=>(i/12)*2*Math.PI-Math.PI/2;
+  function render(sel){ let svg='<svg viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">';
+    svg+='<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="var(--line)" stroke-width="1.5"/>';
+    CIRCLE.forEach((k,i)=>{ const x=cx+R*Math.cos(ang(i)), y=cy+R*Math.sin(ang(i));
+      const sig=KEYSIG[k],typ=KEYSIGTYPE[k]; const isSel=sel===i; const isNb=sel!=null&&(i===(sel+11)%12||i===(sel+1)%12);
+      const fill=isSel?'var(--root)':isNb?'var(--hi2)':'var(--bg3)'; const tc=(isSel||isNb)?'#0a0c10':'var(--txt)';
+      svg+='<g class="tcell" data-i="'+i+'"><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+fill+'" stroke="var(--line)" stroke-width="1.5"/>'
+        +'<text x="'+x+'" y="'+(y-2)+'" text-anchor="middle" font-size="14" font-weight="800" fill="'+tc+'" pointer-events="none">'+k+'</text>'
+        +'<text x="'+x+'" y="'+(y+12)+'" text-anchor="middle" font-size="9" fill="'+((isSel||isNb)?'#0a0c10':'var(--faint)')+'" pointer-events="none">'+(sig===0?'0':sig+typ)+'</text></g>'; });
+    svg+='<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-size="11" fill="var(--faint)">CIRCLE OF</text>'
+       +'<text x="'+cx+'" y="'+(cy+12)+'" text-anchor="middle" font-size="13" font-weight="700" fill="var(--dim)">FIFTHS</text></svg>';
+    return svg; }
+  const holder=el('div'); const info=el('div','whint','Tap any key to explore it.'); let sel=null;
+  function draw(){ holder.innerHTML=render(sel); const s=holder.firstChild; s.style.maxWidth='330px'; s.style.margin='0 auto';
+    s.querySelectorAll('.tcell').forEach(g=>g.addEventListener('click',()=>{ sel=+g.dataset.i; const k=CIRCLE[sel];
+      Audio_.seq(buildScale(60+keyRootPc(k),'major'),0.34,0.34);
+      const sig=KEYSIG[k],typ=KEYSIGTYPE[k]; const acc=accidentalsOf(k);
+      const nbR=CIRCLE[(sel+1)%12], nbL=CIRCLE[(sel+11)%12];
+      info.innerHTML='<b>'+k+' major</b> — '+(sig===0?'no sharps or flats':acc)+'.<br>Closest relatives: <b>'+nbL+'</b> and <b>'+nbR+'</b> (one accidental different — they share six of seven notes).';
+      draw(); })); }
+  draw(); box.appendChild(holder); box.appendChild(info); return box;
+}
+function accidentalsOf(k){ const sig=KEYSIG[k],typ=KEYSIGTYPE[k]; if(sig===0) return 'no sharps or flats';
+  const SH=['F#','C#','G#','D#','A#','E#']; const FL=['Bb','Eb','Ab','Db','Gb','Cb'];
+  const list=(typ==='#'?SH:FL).slice(0,sig);
+  return sig+' '+(typ==='#'?'sharp':'flat')+(sig>1?'s':'')+' ('+list.join(', ')+')';
+}
+
+/* ---- best drill widget for a given skill (ear skills get ladders) ---- */
+function drillFor(id){
+  if(id==='interval-ear') return intervalLadder();
+  if(id==='chord-quality') return chordEarLadder();
+  if(id==='maj-min') return majMinLadder();
+  if(id==='cadence') return cadenceEarLadder();
+  if(id==='mode') return modeEarLadder();
+  const s=skillById(id);
+  return skillDrill(id,{intro: s.ear?'Tap play, then answer. Difficulty adapts to your streak.':'Answer to build mastery. Difficulty adapts to your streak.'});
+}
+
+/* ---- Practice hub views ---- */
+function renderPractice(){
+  Bar.innerHTML='Practice';
+  const h=el('div','hero'); h.appendChild(el('h1','','Practice'));
+  h.appendChild(el('p','','Short, randomized drills that adapt to you. A session picks what you most need right now — based on your accuracy and what you haven\'t touched lately.'));
+  App.appendChild(h);
+  const avail=SKILLS.filter(skillUnlocked);
+  if(avail.length){ const start=el('button','btn'); start.style.cssText='width:100%;padding:15px;font-size:1.05rem;margin-bottom:6px;';
+    start.innerHTML='▶ Start a smart session (12 questions)'; start.onclick=()=>go({view:'session'}); App.appendChild(start);
+    App.appendChild(el('div','drill-set','Adapts to your level · feeds the mastery bars below'));
+  } else App.appendChild(el('div','callout','Complete at least one lesson to unlock practice drills.'));
+  App.appendChild(el('div','track-h','Skills — tap to drill one'));
+  SKILLS.forEach(s=>{ const unlocked=skillUnlocked(s); const lvl=Mastery.level(s.id); const att=Mastery.attempts(s.id);
+    const row=el('div','skill-row'+(unlocked?'':' locked'));
+    const sub = !unlocked? ('Unlocks in Module '+s.module) : (att? Math.round(Mastery.acc(s.id)*100)+'% recent · '+att+' tries' : 'not started yet');
+    row.innerHTML='<div class="si"><b>'+s.name+'</b><span>'+sub+'</span><div class="mastery-bar"><i style="width:'+(lvl/5*100)+'%"></i></div></div>'+stars(lvl);
+    if(unlocked) row.onclick=()=>go({view:'drill',skill:s.id});
+    App.appendChild(row);
+  });
+}
+function renderDrillView(id){ const s=skillById(id); Bar.innerHTML=s.name;
+  const h=el('div','hero'); h.appendChild(el('h1','',s.name));
+  h.appendChild(el('p','', s.ear?'Work through the stages left to right — each one ramps up the challenge.':'Keep going as long as you like; it adapts to you.'));
+  App.appendChild(h);
+  App.appendChild(drillFor(id));
+}
+function renderSession(){
+  Bar.innerHTML='Smart session';
+  const avail=SKILLS.filter(skillUnlocked);
+  const wrap=el('div','lesson'); App.appendChild(wrap);
+  if(!avail.length){ wrap.appendChild(el('p',null,'Complete a lesson first to unlock practice.')); return; }
+  const queue=buildSession(12); let i=0; const results={};
+  const card=el('div','qcard'); wrap.appendChild(card);
+  function step(){ card.innerHTML='';
+    if(i>=queue.length) return summary();
+    const s=queue[i]; const lvl=Math.max(0,Math.min(5,Mastery.level(s.id))); const q=s.make(lvl);
+    card.appendChild(el('div','qprog','Question '+(i+1)+' of '+queue.length+' · '+s.name));
+    const bar=el('div','qbar'); bar.appendChild(el('i')); card.appendChild(bar); bar.firstChild.style.width=(i/queue.length*100)+'%';
+    if(q.prompt) card.appendChild(typeof q.prompt==='string'?el('div','qq',q.prompt):q.prompt);
+    if(q.refs){ const t=el('div','drill-anchor'); t.innerHTML=q.refs.join('<br>'); card.appendChild(t); }
+    if(q.play) card.appendChild(PlayBtn(s.ear?'Play':'Hear it',()=>q.play()));
+    let answered=false;
+    q.choices.forEach((c,idx)=>{ const b=el('button','opt',c); card.appendChild(b);
+      b.onclick=()=>{ if(answered)return; answered=true; const ok=idx===q.answer;
+        const opts=card.querySelectorAll('.opt');
+        if(ok) b.classList.add('correct'); else { b.classList.add('wrong'); opts[q.answer].classList.add('correct'); }
+        opts.forEach((bb,j)=>{ if(j!==idx&&j!==q.answer) bb.classList.add('dim'); bb.disabled=true; });
+        Mastery.record(s.id,ok); results[s.id]=results[s.id]||{c:0,n:0}; results[s.id].n++; if(ok)results[s.id].c++;
+        const fbk=el('div','feedback show '+(ok?'ok':'no'),(ok?'<b>Correct.</b> ':'<b>Not quite.</b> ')+(q.why||'')); card.appendChild(fbk);
+        if(q.play) card.appendChild(PlayBtn('Replay',()=>q.play(),'sec'));
+        const nx=el('button','btn',(i+1<queue.length?'Next →':'See results')); nx.style.marginTop='12px'; nx.onclick=()=>{i++;step();}; card.appendChild(nx);
+      };
+    });
+  }
+  function summary(){ card.innerHTML=''; let tot=0,cor=0; Object.keys(results).forEach(k=>{tot+=results[k].n;cor+=results[k].c;});
+    const r=el('div','result'); r.appendChild(el('div','big',Math.round(cor/Math.max(1,tot)*100)+'%'));
+    r.appendChild(el('div','lbl',cor+' of '+tot+' correct across '+Object.keys(results).length+' skills')); card.appendChild(r);
+    Object.keys(results).forEach(id=>{ const s=skillById(id); const x=results[id];
+      const row=el('div','sess-sum'); row.innerHTML='<span>'+s.name+'</span><span>'+x.c+'/'+x.n+' &nbsp; '+stars(Mastery.level(id))+'</span>'; card.appendChild(row); });
+    const again=el('button','btn','Practice again'); again.style.cssText='margin-top:14px;width:100%;'; again.onclick=()=>go({view:'session'}); card.appendChild(again);
+    const done=el('button','btn ghost','Back to practice'); done.style.cssText='margin-top:8px;width:100%;'; done.onclick=()=>go({view:'practice'}); card.appendChild(done);
+  }
+  step();
+}
 </script>
 </body>
 </html>
