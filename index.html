@@ -1205,7 +1205,7 @@ const COURSE=[
     {t:'p',x:'Notice something: between <b>E and F</b>, and between <b>B and C</b>, there is no black key — no note in between. Those two pairs are already as close as notes get. That detail is the seed of nearly everything in this course, so hold onto it.'},
     {t:'h',x:'Practice: name the note'},
     {t:'p',x:'Knowing the twelve names cold makes everything that follows faster. In the drill below a position lights up and you name it, with a fresh question each time. Repeat it until naming any position is instant.'},
-    {t:'custom',build:()=>skillDrill('note-name',{intro:'A position lights up on the clock — name it.'})},
+    {t:'custom',build:()=>skillDrill('note-name',{intro:'A key lights up on the (unlabeled) keyboard — name it. Use the black-key groups to find your place.'})},
   ]},
   { id:'m1l2', title:'Half Steps & Whole Steps', mins:4, blocks:[
     {t:'p',x:'There are only two distances you need to start: the <span class="term">half step</span> and the <span class="term">whole step</span>. Every scale and chord is just a recipe written in these two units.'},
@@ -1292,17 +1292,17 @@ const COURSE=[
   ]},
   { id:'m2l3', title:'Using Intervals to Hear', mins:4, blocks:[
     {t:'p',x:'The payoff: once you can name intervals, you can explain <i>why</i> any two notes sound the way they do together — and start recognizing them in real music. This is also the foundation of ear training.'},
-    {t:'p',x:'A classic trick is to anchor each interval to a song you know. The first two notes of a familiar tune lock the sound into memory:'},
+    {t:'p',x:'Naming intervals by ear comes from one thing: repeated listening until each size has a recognizable character. It helps to fix two handles on each interval — its <b>size in half steps</b> (which you can hear by walking up the steps between the two notes) and its <b>emotional color</b>:'},
     {t:'ul',x:[
-      '<b>Perfect 5th</b> (7) — opening of "Twinkle Twinkle" / Star Wars theme. Hollow, heroic.',
-      '<b>Major 3rd</b> (4) — opening of "When the Saints Go Marching In". Bright.',
-      '<b>Minor 3rd</b> (3) — "Greensleeves" / "Hey Jude" (last two notes of the title). Wistful.',
-      '<b>Perfect 4th</b> (5) — "Here Comes the Bride". Strong, ceremonial.',
-      '<b>Octave</b> (12) — "Somewhere" from West Side Story ("Some-where"). A leap to the same note.',
-      '<b>Tritone</b> (6) — "The Simpsons" theme ("The Simp-"). Unstable, cartoonish.'
+      '<b>Perfect 5th</b> (7) — open, hollow, rock-solid. The most stable leap.',
+      '<b>Octave</b> (12) — the same note higher; the two pitches fuse completely.',
+      '<b>Major 3rd</b> (4) — bright and sweet; the "happy" sound.',
+      '<b>Minor 3rd</b> (3) — soft and dark; the "sad" sound, one half step tighter than the major 3rd.',
+      '<b>Perfect 4th</b> (5) — firm and open, a touch suspended.',
+      '<b>Tritone</b> (6) — maximally tense and unstable; it strains to resolve.'
     ]},
-    {t:'widget',label:'Test your anchors — build and replay any interval',build:()=>intervalBuilder(),
-      hint:'Set the interval, play it, and hum the song it reminds you of. Do this often and naming-by-ear becomes automatic.'},
+    {t:'widget',label:'Build & replay any interval',build:()=>intervalBuilder(),
+      hint:'Pick an interval and play it a few times — notice its character and how wide the leap feels. Then work through the staged trainer below.'},
     {t:'h',x:'Inverting an interval'},
     {t:'p',x:'Here is a genuinely useful shortcut that also deepens how you hear intervals. To <span class="term">invert</span> an interval, take the lower of the two notes and move it up an octave (or equivalently, move the top note down an octave) so they swap which one is on the bottom. C-up-to-G is a 5th; flip it so G is now on the bottom, G-up-to-C, and you have a 4th.'},
     {t:'p',x:'The magic is that <b>an interval and its inversion always add up to 12 half steps</b> — a full octave. A perfect 5th is 7 half steps; its inversion is 12 − 7 = 5 half steps, a perfect 4th. A major 3rd (4) inverts to a minor 6th (8), since 4 + 8 = 12. A minor 2nd (1) inverts to a major 7th (11). The two are mirror images that complete each other.'},
@@ -1311,10 +1311,10 @@ const COURSE=[
     {t:'h',x:'Practice: hearing intervals, step by step'},
     {t:'p',x:'Identifying intervals by ear is a skill that builds in stages. The trainer below has <b>four</b>, arranged left to right from easiest to hardest — the early stages are what make the last one possible:'},
     {t:'ul',x:[
-      '<b>Learn</b> — no scoring. Just play each interval, hear its character, and tie it to a song. This is where the sounds get into your memory.',
+      '<b>Learn</b> — no scoring. Each interval plays the two notes, then walks up the steps between them so you hear the distance. This is where the sounds get into your memory.',
       '<b>Compare</b> — two intervals in a row; simply decide which was <i>bigger</i>. Much easier than naming, and it trains the underlying perception.',
-      '<b>Guided</b> — now name it, but with help: a small set, the song anchors shown, and a replay-and-explain on every miss.',
-      '<b>Identify</b> — the cold test. The set grows as your streak grows and shrinks when you slip, so it always meets you where you are.'
+      '<b>Guided</b> — now name it, with help: a small set, plus compare buttons to play each candidate against the mystery interval, and replay-and-explain on every miss.',
+      '<b>Identify</b> — the cold test: name it from your ear alone.'
     ]},
     {t:'p',x:'Work through the stages in order, and return to it over several short sittings rather than one long grind — ear skills build through brief, repeated practice.'},
     {t:'custom',build:()=>intervalLadder()},
@@ -1337,7 +1337,7 @@ const COURSE=[
     {q:'Listen — name this interval.', sub:'Played low then high. Tap play.',
      build:()=>earQ(()=>Audio_.interval(60,67,0.7,0.6)),
      options:['Minor 2nd','Major 3rd','Perfect 5th','Octave'], answer:2,
-     why:'That was C→G, a perfect 5th — that hollow, open, "Star Wars" sound.'},
+     why:'That was C→G, a perfect 5th — that hollow, open, rock-solid sound.'},
     {q:'Listen — bright or dark? Name it.', sub:'Tap play.',
      build:()=>earQ(()=>Audio_.interval(60,63,0.7,0.6)),
      options:['Major 3rd (bright)','Minor 3rd (dark)','Perfect 4th','Tritone'], answer:1,
@@ -1345,7 +1345,7 @@ const COURSE=[
     {q:'Listen — this tense, restless interval is the…', sub:'Tap play.',
      build:()=>earQ(()=>Audio_.interval(60,66,0.7,0.6)),
      options:['Octave','Perfect 5th','Tritone','Major 2nd'], answer:2,
-     why:'That was the tritone (6 half steps) — maximally unstable, the "Simpsons" leap. It badly wants to resolve.'},
+     why:'That was the tritone (6 half steps) — maximally unstable and restless. It badly wants to resolve.'},
   ]}},
 ]},
 
@@ -1388,11 +1388,12 @@ const COURSE=[
     {t:'p',x:'Here is the key insight, built up slowly. A major scale is <i>always</i> the pattern W-W-H-W-W-W-H. C major happens to fit that pattern using only white keys (C D E F G A B), so it needs no sharps or flats. But what about starting on a different note?'},
     {t:'p',x:'Try building <b>G major</b>. Start on G and lay down W-W-H-W-W-W-H: G, A, B, C, D, E, and then… the 7th step needs to be a whole step above E, which is F♯ — not F. If you played a plain F here, the step from E to F would be only a half step and the step F to G a whole step, and the pattern would be wrong: it simply wouldn\'t sound like a major scale. So <b>G major is forced to use F♯</b>. There\'s no choice involved — the major pattern demands it.'},
     {t:'p',x:'That forced note is the whole point. Rather than write a ♯ next to every single F in the music, we declare once at the start: "this piece is in G major, so every F is sharp." That standing declaration — the fixed set of sharps or flats a key always uses — is its <span class="term">key signature</span>. G major\'s signature is one sharp (F♯). C major\'s is empty.'},
+    {t:'p',x:'In the exercise below the keys are listed <b>C, G, D, A, E, B</b> — not alphabetically, which can look odd at first. This is not a new order to memorise. Each key is simply built a <b>fifth above</b> the previous one: G is the 5th note of C\'s scale, D is the 5th of G\'s, A is the 5th of D\'s, and so on. And it happens that every one of those fifth-steps forces in exactly one new sharp — so the whole sequence generates itself from a single rule. The next lesson draws this same sequence as the Circle of Fifths.'},
     {t:'widget',label:'See the forced notes for yourself',build:()=>keySignatureBuilder(),
       hint:'Step through the keys. Each one keeps the previous key\'s sharps and is forced to add exactly one more. That "+1 sharp each step" is not a coincidence — it\'s the seed of the Circle of Fifths on the next screen.'},
     {t:'note',x:'<b>Why they accumulate by one.</b> Going from C to G to D to A, each new key starts a fifth higher and needs exactly one new sharp while keeping all the old ones (G adds F♯; D keeps F♯ and adds C♯; A keeps both and adds G♯). Flats work the same way going the other direction. Memorising every signature is unnecessary once you see they\'re generated by this simple, regular process.'},
     {t:'h',x:'Practice: key signatures'},
-    {t:'p',x:'Recalling how many sharps or flats a key carries is worth drilling until it\'s instant. This one starts with the common keys and widens out as you go.'},
+    {t:'p',x:'Recalling how many sharps or flats a key carries is worth drilling until it\'s instant.'},
     {t:'custom',build:()=>skillDrill('key-sig',{intro:'How many sharps or flats does the named key have? Starts easy, widens as you go.'})},
   ]},
   { id:'m3l4', title:'The Circle of Fifths', mins:6, blocks:[
@@ -1458,7 +1459,7 @@ const COURSE=[
       hint:'Start by flipping between Major and Minor on the same root — listen to that one note move. Then try Diminished (notice the unease) and Augmented (notice it can\'t sit still).'},
     {t:'note',k:'code',x:'// Procedural lens: a chord is a set of offsets from a root.\n// major = [0,4,7]   minor = [0,3,7]\n// dim   = [0,3,6]   aug   = [0,4,8]\n// Transpose = add the root midi number to every offset.'},
     {t:'h',x:'Practice: name the chord quality'},
-    {t:'p',x:'Hearing a chord and instantly knowing its quality is a core skill for figuring out songs and writing your own. Begin on the <b>Learn</b> stage to fix the four sounds in your ear, then test yourself; the difficulty widens to include 7th chords as you improve.'},
+    {t:'p',x:'Hearing a chord and instantly knowing its quality is a core skill for figuring out songs and writing your own. Begin on the <b>Learn</b> stage to fix the four sounds in your ear, then test yourself.'},
     {t:'custom',build:()=>chordEarLadder()},
   ]},
   { id:'m4l2', title:'7th Chords & Extensions', mins:5, blocks:[
@@ -1592,7 +1593,7 @@ const COURSE=[
       hint:'I–V–vi–IV alone underlies hundreds of pop songs. ii–V–I is the heartbeat of jazz. Play each and listen for where the tension sits and how it releases.'},
     {t:'note',x:'<b>Why these and not others?</b> Strong progressions move by descending 5ths (V→I, ii→V) or step into the tonic — motions the ear finds inevitable. Weak or "backward" moves (like V→IV) feel like swimming upstream. Function explains <i>why</i> some chord moves feel right and others feel off.'},
     {t:'h',x:'Practice: identify the cadence'},
-    {t:'p',x:'Cadences are easiest to learn by ear, because each has a distinct feeling of ending. Start on the <b>Learn</b> stage to hear the four side by side, then test yourself — it begins with just the two most different (authentic vs plagal) and adds the others as you go.'},
+    {t:'p',x:'Cadences are easiest to learn by ear, because each has a distinct feeling of ending. Start on the <b>Learn</b> stage to hear the four side by side, then test yourself.'},
     {t:'custom',build:()=>cadenceEarLadder()},
   ]},
   { id:'m6q', title:'Module 6 Quiz', mins:6, quiz:{ questions:[
@@ -1739,7 +1740,7 @@ const COURSE=[
     ]},
     {t:'note',x:'<b>Why modes matter for composing.</b> They let you write something that isn\'t quite major or minor — a specific emotional color. A progression that stays on D Dorian feels different from D minor, even using overlapping notes, because of which note feels like home.'},
     {t:'h',x:'Practice: name the mode'},
-    {t:'p',x:'An advanced ear challenge — fluency takes time. Lean on the <b>Learn</b> stage: each mode plays from the same root, so the only thing changing is its characteristic note. The test starts with just two modes and adds more as you improve.'},
+    {t:'p',x:'An advanced ear challenge — fluency takes time. Lean on the <b>Learn</b> stage: each mode plays from the same root, so the only thing changing is its characteristic note. Then test yourself.'},
     {t:'custom',build:()=>modeEarLadder()},
   ]},
   { id:'m9l2', title:'Borrowing & Secondary Dominants', mins:6, blocks:[
@@ -1932,27 +1933,28 @@ function stars(l){ l=Math.max(0,Math.min(5,Math.round(l))); return '<span class=
 /* ---- leveled question generators (shared by lessons, hub & sessions) ---- */
 function keyRootPc(k){ return (((NAT[k[0]]+(k[1]==='#'?1:k[1]==='b'?-1:0))%12)+12)%12; }
 
-const IV_ORDER=[ // easy -> hard, with song anchors
- {st:7, n:'Perfect 5th', a:'"Twinkle Twinkle" / Star Wars'},
- {st:12,n:'Octave',      a:'"Some-where" (West Side Story)'},
- {st:4, n:'Major 3rd',   a:'"When the Saints Go Marching In"'},
- {st:3, n:'Minor 3rd',   a:'"Greensleeves" / "Hey Jude" title'},
- {st:5, n:'Perfect 4th', a:'"Here Comes the Bride"'},
- {st:9, n:'Major 6th',   a:'"My Bonnie Lies Over the Ocean"'},
- {st:2, n:'Major 2nd',   a:'"Happy Birthday" (first two notes)'},
- {st:8, n:'Minor 6th',   a:'"The Entertainer" (the big leap)'},
- {st:6, n:'Tritone',     a:'"The Simp-sons" theme'},
- {st:10,n:'Minor 7th',   a:'Star Trek theme (opening leap)'},
- {st:11,n:'Major 7th',   a:'"Take On Me" (chorus leap)'},
- {st:1, n:'Minor 2nd',   a:'"Jaws" theme'},
+const IV_ORDER=[ // easy -> hard, with culture-independent character cues
+ {st:7, n:'Perfect 5th', char:'open and hollow — the most stable leap'},
+ {st:12,n:'Octave',      char:'the same note, higher — total fusion'},
+ {st:4, n:'Major 3rd',   char:'bright and sweet — the "happy" third'},
+ {st:3, n:'Minor 3rd',   char:'soft and dark — the "sad" third'},
+ {st:5, n:'Perfect 4th', char:'firm and open, a little suspended'},
+ {st:9, n:'Major 6th',   char:'warm and yearning, leaning upward'},
+ {st:2, n:'Major 2nd',   char:'a single whole step — gentle motion'},
+ {st:8, n:'Minor 6th',   char:'aching and dramatic'},
+ {st:6, n:'Tritone',     char:'maximum tension — restless and unstable'},
+ {st:10,n:'Minor 7th',   char:'bluesy and unresolved'},
+ {st:11,n:'Major 7th',   char:'sharp and longing, just shy of an octave'},
+ {st:1, n:'Minor 2nd',   char:'harsh and clashing — the tightest squeeze'},
 ];
 function ivPool(level){ const sizes=[3,4,5,7,9,12]; return IV_ORDER.slice(0,sizes[Math.max(0,Math.min(5,level))]); }
 function qInterval(level,guided){ const pool=ivPool(level); const c=pool[randInt(pool.length)];
   const opts=shuffle([c,...pickN(pool.filter(x=>x!==c),Math.min(3,pool.length-1))]);
   const root=60+randInt(8);
   const q={ play:()=>Audio_.interval(root,root+c.st), choices:opts.map(o=>o.n), answer:opts.indexOf(c),
-    why:'A '+c.n+' — '+c.st+' half steps. Sounds like '+c.a+'.' };
-  if(guided) q.refs=opts.map(o=>'♪ <b>'+o.n+'</b> — '+o.a);
+    why:'A '+c.n+' — '+c.st+' half steps; '+c.char+'.' };
+  // Guided help: hear each candidate from the SAME root and match by ear (no outside knowledge needed)
+  if(guided) q.refButtons=opts.map(o=>({label:o.n, play:()=>Audio_.interval(root,root+o.st)}));
   return q;
 }
 function ivCompareQ(){ const pool=IV_ORDER.slice(0,8); let a=pool[randInt(pool.length)], b=pool[randInt(pool.length)];
@@ -1960,32 +1962,38 @@ function ivCompareQ(){ const pool=IV_ORDER.slice(0,8); let a=pool[randInt(pool.l
   const root=60+randInt(6);
   return { play:()=>{ Audio_.seq([root,root+a.st],0.45,0.42); setTimeout(()=>Audio_.seq([root,root+b.st],0.45,0.42),1400); },
     choices:['The 1st was bigger','The 2nd was bigger'], answer: a.st>b.st?0:1,
-    why:'1st was a '+a.n+' ('+a.st+'), 2nd a '+b.n+' ('+b.st+').' };
+    why:'1st was a '+a.n+' ('+a.st+' half steps), 2nd a '+b.n+' ('+b.st+').' };
 }
 function qIntervalCount(level){ const c=IV_ORDER[randInt(IV_ORDER.length)];
   const nums=shuffle([c.st,...pickN([1,2,3,4,5,6,7,8,9,10,11,12].filter(n=>n!==c.st),3)]);
   return { prompt:'How many half steps in a '+c.n+'?', choices:nums.map(String), answer:nums.indexOf(c.st),
     why:'A '+c.n+' = '+c.st+' half steps.' };
 }
-function qNoteName(level){ const pc=randInt(12); const hi={}; hi[pc]='root';
-  const wrap=el('div'); wrap.appendChild(Clock({highlight:hi,static:true}));
+function qNoteName(level){ const pc=randInt(12); const m=60+pc;
+  // Unlabeled keyboard: you must actually KNOW the key, not read its label.
+  const wrap=el('div'); wrap.appendChild(Piano({low:60,high:72,highlight:{[m]:'root'},labels:false}));
   const correct=SHARP[pc]; const opts=shuffle([correct,...pickN(SHARP.filter(n=>n!==correct),3)]);
-  return { prompt:wrap, play:()=>Audio_.note(60+pc,0.8), choices:opts, answer:opts.indexOf(correct),
-    why:'The lit position (clockwise from C at top) is '+correct+'.' };
+  return { prompt:wrap, play:()=>Audio_.note(m,0.8), choices:opts, answer:opts.indexOf(correct),
+    why:'The highlighted key is '+correct+'. (Locate it by the black-key groups: the white key just left of the two-black group is C.)' };
 }
-function qMajMin(level){ const types= level>=4? [['major','Major'],['natminor','Minor'],['harmonicminor','Harmonic minor']]
-    : [['major','Major'],['natminor','Minor']];
-  const t=types[randInt(types.length)]; const root=60+randInt(8); const opts=shuffle(types.map(x=>x[1]));
+function qMajMin(level){ const types=[['major','Major'],['natminor','Minor']];
+  const t=types[randInt(2)]; const root=60+randInt(8); const opts=shuffle(types.map(x=>x[1]));
   return { prompt:'Major or minor?', play:()=>Audio_.seq(buildScale(root,t[0]),0.32,0.32), choices:opts,
-    answer:opts.indexOf(t[1]), why:'A '+t[1].toLowerCase()+' scale.' };
+    answer:opts.indexOf(t[1]), why:'A '+t[1].toLowerCase()+' scale — listen to the 3rd note: bright = major, flat = minor.' };
 }
 const SPELL_KEYS=['C','G','D','A','E']; // sharp keys only so SHARP spelling is correct
-function qScaleSpell(level){ const keys= level<3? SPELL_KEYS.slice(0,3):SPELL_KEYS; const k=keys[randInt(keys.length)];
-  const deg= 2+randInt(level<3?3:6); const scale=buildScale(60+keyRootPc(k),'major');
-  const note=SHARP[scale[deg-1]%12]; const opts=shuffle([note,...pickN(SHARP.filter(n=>n!==note),3)]);
+function qScaleSpell(level){
+  // Real ramp: start with C only (all white keys), then add one sharp-key at a time.
+  const KEYS_BY_LEVEL=[['C'],['C'],['C','G'],['C','G','D'],['C','G','D','A'],['C','G','D','A','E']];
+  const keys=KEYS_BY_LEVEL[Math.max(0,Math.min(5,level))]; const k=keys[randInt(keys.length)];
+  const maxDeg= level<2?3 : level<4?5:7; const deg=2+randInt(maxDeg-1); // 2..maxDeg
+  const scale=buildScale(60+keyRootPc(k),'major'); const note=SHARP[scale[deg-1]%12];
+  const opts=shuffle([note,...pickN(SHARP.filter(n=>n!==note),3)]);
   const ord=['1st','2nd','3rd','4th','5th','6th','7th'][deg-1];
-  return { prompt:'In '+k+' major, what is the '+ord+' note?', choices:opts, answer:opts.indexOf(note),
-    why:k+' major = '+scale.slice(0,7).map(m=>SHARP[m%12]).join(' ')+'. The '+ord+' is '+note+'.' };
+  const q={ prompt:'In '+k+' major, what is the '+ord+' note?', choices:opts, answer:opts.indexOf(note),
+    why:k+' major = '+scale.slice(0,7).map(m=>SHARP[m%12]).join(' ')+'. The '+ord+' note is '+note+'.' };
+  if(level<4) q.refs=['Work it out — from '+k+', step up by W W H W W W H']; // derivation aid, not the answer
+  return q;
 }
 function qKeySig(level){ const keys= level<3? ['C','G','D','F','A'] : CIRCLE.slice();
   const k=keys[randInt(keys.length)]; const sig=KEYSIG[k], typ=KEYSIGTYPE[k];
@@ -2035,17 +2043,17 @@ function qNoteValue(level){ const it=NOTEVALS[randInt(NOTEVALS.length)];
 }
 
 const SKILLS=[
- {id:'note-name',     name:'Note names',          module:1, ear:false, make:qNoteName},
- {id:'interval-count',name:'Interval sizes',       module:2, ear:false, make:qIntervalCount},
- {id:'interval-ear',  name:'Intervals by ear',     module:2, ear:true,  make:qInterval},
- {id:'maj-min',       name:'Major vs minor (ear)', module:3, ear:true,  make:qMajMin},
- {id:'scale-spell',   name:'Scale spelling',       module:3, ear:false, make:qScaleSpell},
- {id:'key-sig',       name:'Key signatures',       module:3, ear:false, make:qKeySig},
- {id:'chord-quality', name:'Chord quality (ear)',  module:4, ear:true,  make:qChordQuality},
- {id:'diatonic',      name:'Diatonic chords',      module:5, ear:false, make:qDiatonic},
- {id:'cadence',       name:'Cadences (ear)',       module:6, ear:true,  make:qCadence},
- {id:'mode',          name:'Modes (ear)',          module:9, ear:true,  make:qMode},
- {id:'note-value',    name:'Note values',          module:10,ear:false, make:qNoteValue},
+ {id:'note-name',     name:'Note names',          module:1, ear:false, ramps:false, make:qNoteName},
+ {id:'interval-count',name:'Interval sizes',       module:2, ear:false, ramps:false, make:qIntervalCount},
+ {id:'interval-ear',  name:'Intervals by ear',     module:2, ear:true,  ramps:true,  make:qInterval},
+ {id:'maj-min',       name:'Major vs minor (ear)', module:3, ear:true,  ramps:false, make:qMajMin},
+ {id:'scale-spell',   name:'Scale spelling',       module:3, ear:false, ramps:true,  make:qScaleSpell},
+ {id:'key-sig',       name:'Key signatures',       module:3, ear:false, ramps:true,  make:qKeySig},
+ {id:'chord-quality', name:'Chord quality (ear)',  module:4, ear:true,  ramps:true,  make:qChordQuality},
+ {id:'diatonic',      name:'Diatonic chords',      module:5, ear:false, ramps:true,  make:qDiatonic},
+ {id:'cadence',       name:'Cadences (ear)',       module:6, ear:true,  ramps:true,  make:qCadence},
+ {id:'mode',          name:'Modes (ear)',          module:9, ear:true,  ramps:true,  make:qMode},
+ {id:'note-value',    name:'Note values',          module:10,ear:false, ramps:false, make:qNoteValue},
 ];
 function skillById(id){ return SKILLS.find(s=>s.id===id); }
 function skillUnlocked(s){ const mod=COURSE[s.module-1]; return s.module===1 || (mod&&mod.lessons.some(l=>Progress.done(l.id))); }
@@ -2067,11 +2075,13 @@ function LeveledDrill(cfg){
   const setline=el('div','drill-set'); box.appendChild(setline);
   function setHead(){ head.querySelector('.drill-score').innerHTML='Streak: <b>'+streak+'</b> &nbsp;·&nbsp; Best: <b>'+best+'</b>'; }
   function setLine(){ if(cfg.showLevel===false){ setline.textContent=''; return; }
-    setline.textContent='Difficulty '+(lvl+1)+' / 6'+(cfg.fixedLevel==null?' · grows with your streak':''); }
+    setline.textContent='Difficulty '+(lvl+1)+' / 6'+(cfg.fixedLevel==null?' — rises as you build a streak':''); }
   function newQ(){ answered=false; q=cfg.make(lvl); stage.innerHTML=''; choices.innerHTML=''; ctrl.innerHTML=''; fb.className='feedback'; refsBox.innerHTML='';
     if(q.prompt) stage.appendChild(typeof q.prompt==='string'?el('div','drill-prompt',q.prompt):q.prompt);
     if(q.play) stage.appendChild(PlayBtn(cfg.playLabel||'Play',()=>q.play()));
     if(q.refs){ const t=el('div','drill-anchor'); t.innerHTML=q.refs.join('<br>'); refsBox.appendChild(t); }
+    if(q.refButtons){ refsBox.appendChild(el('div','drill-set','Compare — tap to hear each option from the same starting note:'));
+      const rr=el('div','btnrow'); q.refButtons.forEach(rb=>rr.appendChild(PlayBtn(rb.label,()=>rb.play(),'sec'))); refsBox.appendChild(rr); }
     choices.style.gridTemplateColumns=q.choices.length%2===1?'1fr':'1fr 1fr';
     q.choices.forEach((c,idx)=>{ const b=el('button','opt',c); choices.appendChild(b);
       b.onclick=()=>{ if(answered)return; answered=true; const ok=idx===q.answer;
@@ -2089,7 +2099,7 @@ function LeveledDrill(cfg){
   setHead(); setLine(); newQ(); return box;
 }
 function skillDrill(id,opts){ const s=skillById(id);
-  return LeveledDrill(Object.assign({skillId:id, playLabel:s.ear?'Play':'Hear it', make:(lvl)=>s.make(lvl)}, opts||{})); }
+  return LeveledDrill(Object.assign({skillId:id, playLabel:s.ear?'Play':'Hear it', showLevel:s.ramps!==false, make:(lvl)=>s.make(lvl)}, opts||{})); }
 
 /* ---- Hear & Learn flashcards ---- */
 function flashLearn(items,cfg){
@@ -2116,16 +2126,17 @@ function intervalLadder(){
   function draw(){ seg.innerHTML='';
     stages.forEach((s,i)=>{ const b=el('button',i===cur?'on':'',s); b.onclick=()=>{cur=i;draw();}; seg.appendChild(b); });
     body.innerHTML='';
-    if(cur===0){ const items=IV_ORDER.slice(0,6).map(iv=>({name:iv.n, sub:iv.st+' half steps', anchor:iv.a, play:()=>Audio_.interval(60,60+iv.st)}));
-      body.appendChild(flashLearn(items,{intro:'No score, no pressure. Play each interval, hear its character, and link it to the song. Cycle through a few times before moving on.'})); }
+    if(cur===0){ const items=IV_ORDER.slice(0,6).map(iv=>({name:iv.n, sub:iv.st+' half steps — '+iv.char,
+        play:()=>{ Audio_.seq([60,60+iv.st],0.5,0.45); setTimeout(()=>{ const fill=[]; for(let k=0;k<=iv.st;k++) fill.push(60+k); Audio_.seq(fill,0.14,0.16); },1300); } }));
+      body.appendChild(flashLearn(items,{intro:'No score. Each card plays the two notes, then walks up the steps between them so you hear how far apart they are. Get to know each one\'s character before testing yourself.'})); }
     else if(cur===1){ body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'COMPARE', record:false, showLevel:false, fixedLevel:0,
       intro:'Two intervals, one after another. Which was bigger? This trains relative size — a much gentler first step than naming.',
       playLabel:'Play both', make:()=>ivCompareQ() })); }
     else if(cur===2){ body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'GUIDED', showLevel:false, fixedLevel:1,
-      intro:'Now name it — with help. The lower note is your reference, the song anchors for each choice are shown, and the set is small. Wrong answers replay and explain.',
+      intro:'Now name it — with help. Play the mystery interval, then use the compare buttons to hear each candidate from the same starting note and match by ear. Wrong answers replay and explain.',
       playLabel:'Play interval', make:(lvl)=>qInterval(lvl,true) })); }
     else { body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'IDENTIFY',
-      intro:'Name the interval cold, no anchors. The set grows as your streak grows and shrinks when you slip, so it always meets you where you are.',
+      intro:'Name the interval cold — no compare buttons this time, just your ear.',
       playLabel:'Play interval', make:(lvl)=>qInterval(lvl,false) })); }
   }
   draw(); return box;
@@ -2143,8 +2154,8 @@ function earLadder(skillId, learnItems){
     else if(cur===1){ body.appendChild(LeveledDrill({skillId, badge:'GUIDED', showLevel:false, fixedLevel:0, playLabel:'Play',
       intro:'Identify it from a small set. Wrong answers replay and explain. Build a streak to feel ready for the cold test.',
       make:(lvl)=>skillById(skillId).make(lvl) })); }
-    else { body.appendChild(LeveledDrill({skillId, badge:'IDENTIFY', playLabel:'Play',
-      intro:'Name it cold. The difficulty adapts to your streak.',
+    else { body.appendChild(LeveledDrill({skillId, badge:'IDENTIFY', playLabel:'Play', showLevel:skillById(skillId).ramps!==false,
+      intro:'Name it cold, no help.',
       make:(lvl)=>skillById(skillId).make(lvl) })); }
   }
   draw(); return box;
@@ -2172,7 +2183,8 @@ function buildSession(n){ const avail=SKILLS.filter(skillUnlocked); const queue=
    ============================================================ */
 function keySignatureBuilder(){
   const box=el('div'); let k='G';
-  box.appendChild(el('div','wlabel','Pick a key. Watch which notes are FORCED to become sharp to keep the major-scale shape.'));
+  box.appendChild(el('div','wlabel','Tap a key to see which notes are forced sharp. They\'re ordered by how many sharps they need — each one a 5th above the last:'));
+  box.appendChild(el('div','drill-set','C (0)  →  G (1)  →  D (2)  →  A (3)  →  E (4)  →  B (5 sharps)'));
   box.appendChild(chipRow(['C','G','D','A','E','B'].map(x=>({label:x,val:x})),1,v=>{k=v;upd();}));
   const disp=el('div'); box.appendChild(disp);
   const info=el('div','whint'); box.appendChild(info);
@@ -2225,7 +2237,7 @@ function drillFor(id){
   if(id==='cadence') return cadenceEarLadder();
   if(id==='mode') return modeEarLadder();
   const s=skillById(id);
-  return skillDrill(id,{intro: s.ear?'Tap play, then answer. Difficulty adapts to your streak.':'Answer to build mastery. Difficulty adapts to your streak.'});
+  return skillDrill(id,{intro: s.ear?'Tap play, then answer.':'Read the question and answer.'});
 }
 
 /* ---- Practice hub views ---- */
