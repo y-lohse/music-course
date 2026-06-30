@@ -1204,8 +1204,8 @@ const COURSE=[
       hint:'The black keys are the five sharps/flats. They cluster in groups of 2 and 3 — that visual grouping is how pianists orient instantly. Tap any key to hear it.'},
     {t:'p',x:'Notice something: between <b>E and F</b>, and between <b>B and C</b>, there is no black key — no note in between. Those two pairs are already as close as notes get. That detail is the seed of nearly everything in this course, so hold onto it.'},
     {t:'h',x:'Practice: name the note'},
-    {t:'p',x:'Knowing the twelve names cold makes everything that follows faster. In the drill below a position lights up and you name it, with a fresh question each time. Repeat it until naming any position is instant.'},
-    {t:'custom',build:()=>skillDrill('note-name',{intro:'A key lights up on the (unlabeled) keyboard — name it. Use the black-key groups to find your place.'})},
+    {t:'p',x:'Beyond just knowing the twelve names, it is powerful to recognize a note <i>by ear</i>. You can\'t name a pitch from nothing, but you can name it relative to a reference — and that is a trainable skill. The trainer below plays the home note C, then a mystery note, and you identify the mystery note. Begin on the <b>Learn</b> stage to soak in how each note sits relative to C; don\'t worry if the cold test is hard at first, it builds over many short sittings.'},
+    {t:'custom',build:()=>noteNameLadder()},
   ]},
   { id:'m1l2', title:'Half Steps & Whole Steps', mins:4, blocks:[
     {t:'p',x:'There are only two distances you need to start: the <span class="term">half step</span> and the <span class="term">whole step</span>. Every scale and chord is just a recipe written in these two units.'},
@@ -1294,12 +1294,12 @@ const COURSE=[
     {t:'p',x:'The payoff: once you can name intervals, you can explain <i>why</i> any two notes sound the way they do together — and start recognizing them in real music. This is also the foundation of ear training.'},
     {t:'p',x:'Naming intervals by ear comes from one thing: repeated listening until each size has a recognizable character. It helps to fix two handles on each interval — its <b>size in half steps</b> (which you can hear by walking up the steps between the two notes) and its <b>emotional color</b>:'},
     {t:'ul',x:[
-      '<b>Perfect 5th</b> (7) — open, hollow, rock-solid. The most stable leap.',
-      '<b>Octave</b> (12) — the same note higher; the two pitches fuse completely.',
-      '<b>Major 3rd</b> (4) — bright and sweet; the "happy" sound.',
-      '<b>Minor 3rd</b> (3) — soft and dark; the "sad" sound, one half step tighter than the major 3rd.',
-      '<b>Perfect 4th</b> (5) — firm and open, a touch suspended.',
-      '<b>Tritone</b> (6) — maximally tense and unstable; it strains to resolve.'
+      '<b>Perfect 5th</b> (7) — open, hollow, rock-solid. ♪ Star Wars (main theme).',
+      '<b>Octave</b> (12) — the same note higher; the two pitches fuse completely. ♪ Singin\' in the Rain.',
+      '<b>Major 3rd</b> (4) — bright and sweet; the "happy" sound. ♪ Kumbaya.',
+      '<b>Minor 3rd</b> (3) — soft and dark; the "sad" sound, one half step tighter than the major 3rd. ♪ Smells Like Teen Spirit (riff).',
+      '<b>Perfect 4th</b> (5) — firm and open, a touch suspended. ♪ We Wish You a Merry Christmas.',
+      '<b>Tritone</b> (6) — maximally tense and unstable; it strains to resolve. ♪ The Simpsons theme.'
     ]},
     {t:'widget',label:'Build & replay any interval',build:()=>intervalBuilder(),
       hint:'Pick an interval and play it a few times — notice its character and how wide the leap feels. Then work through the staged trainer below.'},
@@ -1915,10 +1915,19 @@ const Mastery=(()=>{
   function rec(id){ if(!d[id]) d[id]={n:0,c:0,recent:[],t:0}; return d[id]; }
   const api={
     record(id,ok){ const r=rec(id); r.n++; if(ok)r.c++; r.recent.push(ok?1:0); if(r.recent.length>10)r.recent.shift(); r.t=Date.now(); save(); },
+    // question difficulty (lenient — climbs fairly quickly so drills stay engaging)
     level(id){ const r=d[id]; if(!r||r.n===0) return 0;
       const acc=r.recent.reduce((a,b)=>a+b,0)/r.recent.length;
       const cap=Math.min(5,1+Math.floor(r.n/3));
       return Math.max(1,Math.min(cap,Math.round(acc*5))); },
+    // mastery stars (strict — genuine mastery needs sustained volume AND accuracy)
+    stars(id){ const r=d[id]; if(!r||r.n===0) return 0;
+      const a=r.recent.reduce((x,y)=>x+y,0)/r.recent.length; const c=r.c;
+      if(c>=60 && a>=0.90) return 5;
+      if(c>=30 && a>=0.85) return 4;
+      if(c>=15 && a>=0.75) return 3;
+      if(c>=6  && a>=0.55) return 2;
+      return 1; },
     acc(id){ const r=d[id]; if(!r||!r.recent.length) return 0; return r.recent.reduce((a,b)=>a+b,0)/r.recent.length; },
     attempts(id){ return (d[id]&&d[id].n)||0; },
     last(id){ return (d[id]&&d[id].t)||0; },
@@ -1933,30 +1942,34 @@ function stars(l){ l=Math.max(0,Math.min(5,Math.round(l))); return '<span class=
 /* ---- leveled question generators (shared by lessons, hub & sessions) ---- */
 function keyRootPc(k){ return (((NAT[k[0]]+(k[1]==='#'?1:k[1]==='b'?-1:0))%12)+12)%12; }
 
-const IV_ORDER=[ // easy -> hard, with culture-independent character cues
- {st:7, n:'Perfect 5th', char:'open and hollow — the most stable leap'},
- {st:12,n:'Octave',      char:'the same note, higher — total fusion'},
- {st:4, n:'Major 3rd',   char:'bright and sweet — the "happy" third'},
- {st:3, n:'Minor 3rd',   char:'soft and dark — the "sad" third'},
- {st:5, n:'Perfect 4th', char:'firm and open, a little suspended'},
- {st:9, n:'Major 6th',   char:'warm and yearning, leaning upward'},
- {st:2, n:'Major 2nd',   char:'a single whole step — gentle motion'},
- {st:8, n:'Minor 6th',   char:'aching and dramatic'},
- {st:6, n:'Tritone',     char:'maximum tension — restless and unstable'},
- {st:10,n:'Minor 7th',   char:'bluesy and unresolved'},
- {st:11,n:'Major 7th',   char:'sharp and longing, just shy of an octave'},
- {st:1, n:'Minor 2nd',   char:'harsh and clashing — the tightest squeeze'},
+const IV_ORDER=[ // easy -> hard; char = character cue, a = song anchor (only ones the learner actually knows)
+ {st:7, n:'Perfect 5th', char:'open and hollow — the most stable leap', a:'Star Wars (main theme)'},
+ {st:12,n:'Octave',      char:'the same note, higher — total fusion', a:'Singin\' in the Rain ("I\'m SING-in\'")'},
+ {st:4, n:'Major 3rd',   char:'bright and sweet — the "happy" third', a:'Kumbaya ("Kum-BA-ya")'},
+ {st:3, n:'Minor 3rd',   char:'soft and dark — the "sad" third', a:'Smells Like Teen Spirit (the riff)'},
+ {st:5, n:'Perfect 4th', char:'firm and open, a little suspended', a:'We Wish You a Merry Christmas ("We WISH you")'},
+ {st:9, n:'Major 6th',   char:'warm and yearning, leaning upward', a:'The Flintstones (TV theme)'},
+ {st:2, n:'Major 2nd',   char:'a single whole step — gentle motion', a:'Frère Jacques ("Frè-RE")'},
+ {st:8, n:'Minor 6th',   char:'aching and dramatic', a:'We Are the Champions (Queen)'},
+ {st:6, n:'Tritone',     char:'maximum tension — restless and unstable', a:'The Simpsons theme'},
+ {st:10,n:'Minor 7th',   char:'big and unresolved — bluesy, leaning to the octave'},
+ {st:11,n:'Major 7th',   char:'sharp and longing, just shy of an octave', a:'Take On Me (a-ha)'},
+ {st:1, n:'Minor 2nd',   char:'harsh and clashing — the tightest squeeze', a:'Für Elise (opening two notes)'},
 ];
 function ivPool(level){ const sizes=[3,4,5,7,9,12]; return IV_ORDER.slice(0,sizes[Math.max(0,Math.min(5,level))]); }
 function qInterval(level,guided){ const pool=ivPool(level); const c=pool[randInt(pool.length)];
   const opts=shuffle([c,...pickN(pool.filter(x=>x!==c),Math.min(3,pool.length-1))]);
   const root=60+randInt(8);
   const q={ play:()=>Audio_.interval(root,root+c.st), choices:opts.map(o=>o.n), answer:opts.indexOf(c),
-    why:'A '+c.n+' — '+c.st+' half steps; '+c.char+'.' };
+    why:'A '+c.n+' — '+c.st+' half steps; '+c.char+'.'+(c.a?' ♪ '+c.a+'.':'') };
   // Guided help: hear each candidate from the SAME root and match by ear (no outside knowledge needed)
   if(guided) q.refButtons=opts.map(o=>({label:o.n, play:()=>Audio_.interval(root,root+o.st)}));
   return q;
 }
+function qIntervalAll(){ const c=IV_ORDER[randInt(IV_ORDER.length)]; const root=60+randInt(8);
+  const choices=IV_ORDER.slice().sort((a,b)=>a.st-b.st).map(o=>o.n);
+  return { play:()=>Audio_.interval(root,root+c.st), choices, answer:choices.indexOf(c.n),
+    why:'A '+c.n+' — '+c.st+' half steps; '+c.char+'.'+(c.a?' ♪ '+c.a+'.':'') }; }
 function ivCompareQ(){ const pool=IV_ORDER.slice(0,8); let a=pool[randInt(pool.length)], b=pool[randInt(pool.length)];
   while(b.st===a.st) b=pool[randInt(pool.length)];
   const root=60+randInt(6);
@@ -1964,22 +1977,36 @@ function ivCompareQ(){ const pool=IV_ORDER.slice(0,8); let a=pool[randInt(pool.l
     choices:['The 1st was bigger','The 2nd was bigger'], answer: a.st>b.st?0:1,
     why:'1st was a '+a.n+' ('+a.st+' half steps), 2nd a '+b.n+' ('+b.st+').' };
 }
-function qIntervalCount(level){ const c=IV_ORDER[randInt(IV_ORDER.length)];
-  const nums=shuffle([c.st,...pickN([1,2,3,4,5,6,7,8,9,10,11,12].filter(n=>n!==c.st),3)]);
-  return { prompt:'How many half steps in a '+c.n+'?', choices:nums.map(String), answer:nums.indexOf(c.st),
-    why:'A '+c.n+' = '+c.st+' half steps.' };
+function qIntervalCount(level){
+  const pool= level<2? IV_ORDER.filter(x=>[3,4,5,7,12].includes(x.st)) : IV_ORDER; // start with the common ones
+  const c=pool[randInt(pool.length)]; const nOpts= level<2?3:4;
+  const nums=shuffle([c.st,...pickN([1,2,3,4,5,6,7,8,9,10,11,12].filter(n=>n!==c.st),nOpts-1)]);
+  const q={ prompt:'How many half steps in a '+c.n+'?', choices:nums.map(String), answer:nums.indexOf(c.st),
+    why:'A '+c.n+' = '+c.st+' half steps'+(c.a?' (♪ '+c.a+')':'')+'.' };
+  if(level>=3) q.timeLimit = level>=5?3 : level>=4?4 : 6; // timed reflex questions at higher levels
+  return q;
 }
-function qNoteName(level){ const pc=randInt(12); const m=60+pc;
-  // Unlabeled keyboard: you must actually KNOW the key, not read its label.
-  const wrap=el('div'); wrap.appendChild(Piano({low:60,high:72,highlight:{[m]:'root'},labels:false}));
-  const correct=SHARP[pc]; const opts=shuffle([correct,...pickN(SHARP.filter(n=>n!==correct),3)]);
-  return { prompt:wrap, play:()=>Audio_.note(m,0.8), choices:opts, answer:opts.indexOf(correct),
-    why:'The highlighted key is '+correct+'. (Locate it by the black-key groups: the white key just left of the two-black group is C.)' };
+// Note recognition BY EAR, relative to a played reference C — gradual, uncheatable (no instrument shown).
+const NOTE_ORDER=[7,4,0,5,2,9,11,3,8,10,1,6]; // G, E, (C), F, D, A, B, then chromatic — by ease of hearing vs C
+function ivNameFromC(pc){ const iv=INTERVALS.find(x=>x.st===pc); return iv?iv.name.replace('Perfect ','perfect ').replace('Major ','major ').replace('Minor ','minor '):''; }
+function qNoteName(level,guided){
+  const sizes=[2,3,4,5,7,12]; const pool=NOTE_ORDER.slice(0,sizes[Math.max(0,Math.min(5,level))]);
+  const pc=pool[randInt(pool.length)]; const root=60, target=60+pc; const correct=SHARP[pc];
+  const opts=shuffle([correct,...pickN(pool.filter(p=>p!==pc).map(p=>SHARP[p]),Math.min(3,pool.length-1))]);
+  const q={ prompt:'Home note C plays first, then a mystery note. Name the mystery note.',
+    play:()=>{ Audio_.note(root,0.6); setTimeout(()=>Audio_.note(target,0.75),850); },
+    choices:opts, answer:opts.indexOf(correct),
+    why: pc===0 ? 'It was C again — the same note as the reference.' : correct+' sits a '+ivNameFromC(pc)+' above C.' };
+  if(guided) q.refButtons=opts.map(nm=>{ const p=SHARP.indexOf(nm);
+    return {label:nm, play:()=>{ Audio_.note(root,0.5); setTimeout(()=>Audio_.note(root+p,0.6),650); }}; });
+  return q;
 }
-function qMajMin(level){ const types=[['major','Major'],['natminor','Minor']];
+function qMajMin(level,guided){ const types=[['major','Major'],['natminor','Minor']];
   const t=types[randInt(2)]; const root=60+randInt(8); const opts=shuffle(types.map(x=>x[1]));
-  return { prompt:'Major or minor?', play:()=>Audio_.seq(buildScale(root,t[0]),0.32,0.32), choices:opts,
+  const q={ prompt:'Major or minor?', play:()=>Audio_.seq(buildScale(root,t[0]),0.32,0.32), choices:opts,
     answer:opts.indexOf(t[1]), why:'A '+t[1].toLowerCase()+' scale — listen to the 3rd note: bright = major, flat = minor.' };
+  if(guided) q.refButtons=[{label:'Major',play:()=>Audio_.seq(buildScale(root,'major'),0.3,0.3)},{label:'Minor',play:()=>Audio_.seq(buildScale(root,'natminor'),0.3,0.3)}];
+  return q;
 }
 const SPELL_KEYS=['C','G','D','A','E']; // sharp keys only so SHARP spelling is correct
 function qScaleSpell(level){
@@ -1995,13 +2022,19 @@ function qScaleSpell(level){
   if(level<4) q.refs=['Work it out — from '+k+', step up by W W H W W W H']; // derivation aid, not the answer
   return q;
 }
-function qKeySig(level){ const keys= level<3? ['C','G','D','F','A'] : CIRCLE.slice();
+function qKeySig(level,guided){
+  // grow outward from C along the circle: sharps one way, flats the other
+  const SHARPS=['G','D','A','E','B'], FLATS=['F','Bb','Eb','Ab'];
+  const reach=[1,2,3,4,5,5][Math.max(0,Math.min(5,level))];
+  const keys=['C'].concat(SHARPS.slice(0,reach)).concat(FLATS.slice(0,reach));
   const k=keys[randInt(keys.length)]; const sig=KEYSIG[k], typ=KEYSIGTYPE[k];
   const ans= sig===0?'None (0)': sig+' '+(typ==='#'?'sharp':'flat')+(sig>1?'s':'');
   const distract=['None (0)','1 sharp','2 sharps','3 sharps','4 sharps','1 flat','2 flats','3 flats'];
   const opts=shuffle([ans,...pickN(distract.filter(x=>x!==ans),3)]);
-  return { prompt:'How many sharps or flats does '+k+' major have?', choices:opts, answer:opts.indexOf(ans),
-    why:k+' major has '+ans.toLowerCase()+'.' };
+  const q={ prompt:'How many sharps or flats does '+k+' major have?', choices:opts, answer:opts.indexOf(ans),
+    why:k+' major has '+(sig===0?'none':accidentalsOf(k))+'.' };
+  if(level<3) q.refs=['Sharps build up: C→G→D→A→E→B  (0,1,2,3,4,5)','Flats build up: C→F→B♭→E♭→A♭  (0,1,2,3,4)'];
+  return q;
 }
 function diatonicNames(k){ return MAJ_DIATONIC.map((q,i)=>{ const t=diatonicTriad(60+keyRootPc(k),'major',i); return SHARP[t[0]%12]+CHORDS[q.q].sym; }); }
 function qDiatonic(level){
@@ -2016,23 +2049,31 @@ function qDiatonic(level){
   return { prompt:'In '+k+' major, which chord is '+q.rn+'?', choices:opts, answer:opts.indexOf(name),
     play:()=>Audio_.arpThenBlock(tri), why:q.rn+' in '+k+' major = '+name+'.' };
 }
-function qChordQuality(level){ const set= level<3? [['maj','Major'],['min','Minor'],['dim','Diminished'],['aug','Augmented']]
+const CHORD_CHAR={maj:'bright, happy, resolved',min:'dark and sad',dim:'tense and unstable — two minor 3rds stacked',aug:'strange and dreamlike — two major 3rds stacked',maj7:'lush and warm',min7:'smooth and mellow',dom7:'bluesy and restless — it wants to resolve'};
+function qChordQuality(level,guided){ const set= level<3? [['maj','Major'],['min','Minor'],['dim','Diminished'],['aug','Augmented']]
     : [['maj','Major'],['min','Minor'],['dim','Diminished'],['aug','Augmented'],['maj7','Major 7th'],['min7','Minor 7th'],['dom7','Dominant 7th']];
   const c=set[randInt(set.length)]; const root=60+randInt(6);
   const opts=shuffle([c[1],...pickN(set.filter(s=>s!==c).map(s=>s[1]),3)]);
-  return { prompt:'What chord quality?', play:()=>Audio_.arpThenBlock(buildChord(root,c[0])), choices:opts,
-    answer:opts.indexOf(c[1]), why:'A '+c[1]+' chord.' };
+  const q={ prompt:'What chord quality?', play:()=>Audio_.arpThenBlock(buildChord(root,c[0])), choices:opts,
+    answer:opts.indexOf(c[1]), why:'A '+c[1]+' chord — '+CHORD_CHAR[c[0]]+'.' };
+  if(guided){ const lt={}; set.forEach(s=>lt[s[1]]=s[0]);
+    q.refButtons=opts.map(lb=>({label:lb, play:()=>Audio_.arpThenBlock(buildChord(root,lt[lb]))})); }
+  return q;
 }
-function qCadence(level){ const C=[{d:[4,0],n:'Authentic (V–I)'},{d:[3,0],n:'Plagal (IV–I)'},{d:[0,4],n:'Half (I–V)'},{d:[4,5],n:'Deceptive (V–vi)'}];
-  const pool= level<2? C.slice(0,2) : C; const c=pool[randInt(pool.length)]; const opts=shuffle(pool.map(x=>x.n));
-  return { prompt:'Which cadence?', play:()=>Audio_.progression(c.d.map(d=>diatonicTriad(60,'major',d)),0.95,0.9),
-    choices:opts, answer:opts.indexOf(c.n), why:'The '+c.n+' cadence.' };
+const CAD=[{d:[4,0],n:'Authentic (V–I)',c:'strong and conclusive — tension fully resolved'},{d:[3,0],n:'Plagal (IV–I)',c:'gentle — the "Amen" ending'},{d:[0,4],n:'Half (I–V)',c:'unfinished — it hangs on the tension'},{d:[4,5],n:'Deceptive (V–vi)',c:'a surprise — sets up home, then sidesteps to the minor vi'}];
+function qCadence(level,guided){ const pool= level<2? CAD.slice(0,2) : CAD; const c=pool[randInt(pool.length)]; const opts=shuffle(pool.map(x=>x.n));
+  const q={ prompt:'Which cadence?', play:()=>Audio_.progression(c.d.map(d=>diatonicTriad(60,'major',d)),0.95,0.9),
+    choices:opts, answer:opts.indexOf(c.n), why:'The '+c.n+' cadence — '+c.c+'.' };
+  if(guided){ const by={}; CAD.forEach(x=>by[x.n]=x.d); q.refButtons=opts.map(nm=>({label:nm.replace(/ \(.*\)/,''), play:()=>Audio_.progression(by[nm].map(d=>diatonicTriad(60,'major',d)),0.95,0.9)})); }
+  return q;
 }
 const MODE_ORDER=[5,0,4,1,3,2]; // Aeolian, Ionian, Mixolydian, Dorian, Lydian, Phrygian
-function qMode(level){ const n=Math.min(MODE_ORDER.length,2+level); const pool=MODE_ORDER.slice(0,n).map(r=>MODES[r]);
+function qMode(level,guided){ const n=Math.min(MODE_ORDER.length,2+level); const pool=MODE_ORDER.slice(0,n).map(r=>MODES[r]);
   const c=pool[randInt(pool.length)]; const opts=shuffle([c,...pickN(pool.filter(m=>m!==c),Math.min(3,pool.length-1))]);
-  return { prompt:'Which mode? (all from the same root)', play:()=>Audio_.seq(buildMode(60,c.rot),0.32,0.32),
-    choices:opts.map(m=>m.name+(m.alias?' ('+m.alias+')':'')), answer:opts.indexOf(c), why:c.name+' — characteristic note '+c.char+'.' };
+  const q={ prompt:'Which mode? (all from the same root)', play:()=>Audio_.seq(buildMode(60,c.rot),0.32,0.32),
+    choices:opts.map(m=>m.name+(m.alias?' ('+m.alias+')':'')), answer:opts.indexOf(c), why:c.name+' — characteristic note '+c.char+'; '+c.mood+'.' };
+  if(guided) q.refButtons=opts.map(m=>({label:m.name, play:()=>Audio_.seq(buildMode(60,m.rot),0.3,0.3)}));
+  return q;
 }
 const NOTEVALS=[['Whole note','4 beats'],['Half note','2 beats'],['Quarter note','1 beat'],['Eighth note','½ beat'],['Sixteenth note','¼ beat']];
 function qNoteValue(level){ const it=NOTEVALS[randInt(NOTEVALS.length)];
@@ -2043,8 +2084,8 @@ function qNoteValue(level){ const it=NOTEVALS[randInt(NOTEVALS.length)];
 }
 
 const SKILLS=[
- {id:'note-name',     name:'Note names',          module:1, ear:false, ramps:false, make:qNoteName},
- {id:'interval-count',name:'Interval sizes',       module:2, ear:false, ramps:false, make:qIntervalCount},
+ {id:'note-name',     name:'Notes by ear',        module:1, ear:true,  ramps:true,  make:qNoteName},
+ {id:'interval-count',name:'Interval sizes',       module:2, ear:false, ramps:true,  make:qIntervalCount},
  {id:'interval-ear',  name:'Intervals by ear',     module:2, ear:true,  ramps:true,  make:qInterval},
  {id:'maj-min',       name:'Major vs minor (ear)', module:3, ear:true,  ramps:false, make:qMajMin},
  {id:'scale-spell',   name:'Scale spelling',       module:3, ear:false, ramps:true,  make:qScaleSpell},
@@ -2063,11 +2104,12 @@ function headBadge(txt){ const h=el('div','drill-head'); h.innerHTML='<span clas
 
 function LeveledDrill(cfg){
   const box=el('div','drill'); const skill=cfg.skillId; const BK='theory_best_'+skill+(cfg.badge?('_'+cfg.badge):'');
-  let streak=0, best=+(localStorage.getItem(BK)||0), answered=false, q=null;
+  let streak=0, best=+(localStorage.getItem(BK)||0), answered=false, q=null, lastAns=null, timerRAF=null;
   let lvl = cfg.fixedLevel!=null? cfg.fixedLevel : Math.max(0,Math.min(5,Mastery.level(skill)));
   const head=headBadge(cfg.badge||'PRACTICE'); box.appendChild(head);
   if(cfg.intro) box.appendChild(el('div','drill-intro',cfg.intro));
   const stage=el('div','drill-stage'); box.appendChild(stage);
+  const timeWrap=el('div'); box.appendChild(timeWrap);
   const refsBox=el('div'); box.appendChild(refsBox);
   const choices=el('div','drill-choices'); box.appendChild(choices);
   const fb=el('div','feedback'); box.appendChild(fb);
@@ -2076,25 +2118,38 @@ function LeveledDrill(cfg){
   function setHead(){ head.querySelector('.drill-score').innerHTML='Streak: <b>'+streak+'</b> &nbsp;·&nbsp; Best: <b>'+best+'</b>'; }
   function setLine(){ if(cfg.showLevel===false){ setline.textContent=''; return; }
     setline.textContent='Difficulty '+(lvl+1)+' / 6'+(cfg.fixedLevel==null?' — rises as you build a streak':''); }
-  function newQ(){ answered=false; q=cfg.make(lvl); stage.innerHTML=''; choices.innerHTML=''; ctrl.innerHTML=''; fb.className='feedback'; refsBox.innerHTML='';
+  function stopTimer(){ if(timerRAF){ cancelAnimationFrame(timerRAF); timerRAF=null; } }
+  function startTimer(secs){ const bar=el('div','qbar'); const fill=el('i'); fill.style.background='var(--warn)'; bar.appendChild(fill); timeWrap.appendChild(bar);
+    const t0=Date.now(), ms=secs*1000;
+    (function tick(){ if(!box.isConnected){ stopTimer(); return; } const frac=Math.max(0,1-(Date.now()-t0)/ms); fill.style.width=(frac*100)+'%';
+      if(frac<=0){ answer(-1); return; } timerRAF=requestAnimationFrame(tick); })();
+  }
+  function answer(idx){ if(answered) return; answered=true; stopTimer();
+    const opts=choices.children; const ok=idx===q.answer;
+    if(idx>=0&&opts[idx]) opts[idx].classList.add(ok?'correct':'wrong');
+    if(!ok&&opts[q.answer]) opts[q.answer].classList.add('correct');
+    Array.prototype.forEach.call(opts,(bb,j)=>{ if(j!==idx&&j!==q.answer) bb.classList.add('dim'); bb.disabled=true; });
+    if(ok){ streak++; if(streak>best){best=streak;localStorage.setItem(BK,best);} if(cfg.fixedLevel==null && streak%3===0) lvl=Math.min(5,lvl+1); }
+    else { streak=0; if(cfg.fixedLevel==null) lvl=Math.max(0,lvl-1); }
+    if(cfg.record!==false) Mastery.record(skill,ok);
+    setHead(); setLine();
+    const lead = idx===-1? '<b>Time’s up.</b> ' : (ok?'<b>Correct.</b> ':'<b>Not quite.</b> ');
+    fb.className='feedback show '+(ok?'ok':'no'); fb.innerHTML=lead+(q.why||'');
+    if(q.play) ctrl.appendChild(PlayBtn('Replay',()=>q.play(),'sec'));
+    const nx=el('button','btn','Next →'); nx.onclick=newQ; ctrl.appendChild(nx);
+  }
+  function newQ(){ stopTimer(); answered=false;
+    let tries=0; do { q=cfg.make(lvl); tries++; } while(tries<8 && lastAns!=null && q.choices.length>2 && q.choices[q.answer]===lastAns);
+    lastAns = q.choices.length>2 ? q.choices[q.answer] : null;
+    stage.innerHTML=''; timeWrap.innerHTML=''; choices.innerHTML=''; ctrl.innerHTML=''; fb.className='feedback'; refsBox.innerHTML='';
     if(q.prompt) stage.appendChild(typeof q.prompt==='string'?el('div','drill-prompt',q.prompt):q.prompt);
     if(q.play) stage.appendChild(PlayBtn(cfg.playLabel||'Play',()=>q.play()));
     if(q.refs){ const t=el('div','drill-anchor'); t.innerHTML=q.refs.join('<br>'); refsBox.appendChild(t); }
     if(q.refButtons){ refsBox.appendChild(el('div','drill-set','Compare — tap to hear each option from the same starting note:'));
       const rr=el('div','btnrow'); q.refButtons.forEach(rb=>rr.appendChild(PlayBtn(rb.label,()=>rb.play(),'sec'))); refsBox.appendChild(rr); }
     choices.style.gridTemplateColumns=q.choices.length%2===1?'1fr':'1fr 1fr';
-    q.choices.forEach((c,idx)=>{ const b=el('button','opt',c); choices.appendChild(b);
-      b.onclick=()=>{ if(answered)return; answered=true; const ok=idx===q.answer;
-        if(ok){ b.classList.add('correct'); streak++; if(streak>best){best=streak;localStorage.setItem(BK,best);} if(cfg.fixedLevel==null && streak%3===0) lvl=Math.min(5,lvl+1); }
-        else { b.classList.add('wrong'); choices.children[q.answer].classList.add('correct'); streak=0; if(cfg.fixedLevel==null) lvl=Math.max(0,lvl-1); }
-        Array.prototype.forEach.call(choices.children,(bb,j)=>{ if(j!==idx&&j!==q.answer) bb.classList.add('dim'); bb.disabled=true; });
-        if(cfg.record!==false) Mastery.record(skill,ok);
-        setHead(); setLine();
-        fb.className='feedback show '+(ok?'ok':'no'); fb.innerHTML=(ok?'<b>Correct.</b> ':'<b>Not quite.</b> ')+(q.why||'');
-        if(q.play) ctrl.appendChild(PlayBtn('Replay',()=>q.play(),'sec'));
-        const nx=el('button','btn','Next →'); nx.onclick=newQ; ctrl.appendChild(nx);
-      };
-    });
+    q.choices.forEach((c,idx)=>{ const b=el('button','opt',c); choices.appendChild(b); b.onclick=()=>answer(idx); });
+    if(q.timeLimit) startTimer(q.timeLimit);
   }
   setHead(); setLine(); newQ(); return box;
 }
@@ -2121,7 +2176,7 @@ function flashLearn(items,cfg){
 function intervalLadder(){
   const box=el('div'); const seg=el('div','seg'); box.appendChild(seg);
   const body=el('div'); box.appendChild(body);
-  const stages=['Learn','Compare','Guided','Identify'];
+  const stages=['Learn','Compare','Guided','Identify','All 12'];
   let cur=0;
   function draw(){ seg.innerHTML='';
     stages.forEach((s,i)=>{ const b=el('button',i===cur?'on':'',s); b.onclick=()=>{cur=i;draw();}; seg.appendChild(b); });
@@ -2135,9 +2190,12 @@ function intervalLadder(){
     else if(cur===2){ body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'GUIDED', showLevel:false, fixedLevel:1,
       intro:'Now name it — with help. Play the mystery interval, then use the compare buttons to hear each candidate from the same starting note and match by ear. Wrong answers replay and explain.',
       playLabel:'Play interval', make:(lvl)=>qInterval(lvl,true) })); }
-    else { body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'IDENTIFY',
-      intro:'Name the interval cold — no compare buttons this time, just your ear.',
+    else if(cur===3){ body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'IDENTIFY',
+      intro:'Name the interval cold — no compare buttons this time, just your ear. The choices narrow to a handful that grows with your streak.',
       playLabel:'Play interval', make:(lvl)=>qInterval(lvl,false) })); }
+    else { body.appendChild(LeveledDrill({skillId:'interval-ear', badge:'ALL 12', showLevel:false,
+      intro:'The full challenge: every answer is one of all twelve intervals at once. No narrowing, no help.',
+      playLabel:'Play interval', make:()=>qIntervalAll() })); }
   }
   draw(); return box;
 }
@@ -2152,14 +2210,20 @@ function earLadder(skillId, learnItems){
     body.innerHTML='';
     if(cur===0){ body.appendChild(flashLearn(learnItems,{intro:'Play each one and learn its sound before testing yourself. No score here.'})); }
     else if(cur===1){ body.appendChild(LeveledDrill({skillId, badge:'GUIDED', showLevel:false, fixedLevel:0, playLabel:'Play',
-      intro:'Identify it from a small set. Wrong answers replay and explain. Build a streak to feel ready for the cold test.',
-      make:(lvl)=>skillById(skillId).make(lvl) })); }
+      intro:'Identify it from a small set. Use the compare buttons to play each candidate against the mystery sound; every miss replays and explains.',
+      make:(lvl)=>skillById(skillId).make(lvl,true) })); }
     else { body.appendChild(LeveledDrill({skillId, badge:'IDENTIFY', playLabel:'Play', showLevel:skillById(skillId).ramps!==false,
-      intro:'Name it cold, no help.',
-      make:(lvl)=>skillById(skillId).make(lvl) })); }
+      intro:'Name it cold — no compare buttons, just your ear.',
+      make:(lvl)=>skillById(skillId).make(lvl,false) })); }
   }
   draw(); return box;
 }
+function noteNameLadder(){ return earLadder('note-name',
+  NOTE_ORDER.slice(0,7).map(pc=>({name:SHARP[pc], sub:(pc===0?'the home note C itself':'a '+ivNameFromC(pc)+' above C'),
+    play:()=>{ Audio_.note(60,0.5); setTimeout(()=>Audio_.note(60+pc,0.6),650); }}))); }
+function keySigLadder(){ const order=['C','G','D','A','E','B','F','Bb','Eb','Ab'];
+  return earLadder('key-sig', order.map(k=>({name:k+' major', sub:(KEYSIG[k]===0?'no sharps or flats':accidentalsOf(k)),
+    play:()=>Audio_.seq(buildScale(60+keyRootPc(k),'major'),0.3,0.3)}))); }
 function chordEarLadder(){ return earLadder('chord-quality',
   [['maj','Major','bright, happy, resolved'],['min','Minor','darker, sadder'],['dim','Diminished','tense, unstable'],['aug','Augmented','strange, suspended']]
   .map(([t,n,s])=>({name:n, sub:s, play:()=>Audio_.arpThenBlock(buildChord(60,t))}))); }
@@ -2232,6 +2296,8 @@ function accidentalsOf(k){ const sig=KEYSIG[k],typ=KEYSIGTYPE[k]; if(sig===0) re
 /* ---- best drill widget for a given skill (ear skills get ladders) ---- */
 function drillFor(id){
   if(id==='interval-ear') return intervalLadder();
+  if(id==='note-name') return noteNameLadder();
+  if(id==='key-sig') return keySigLadder();
   if(id==='chord-quality') return chordEarLadder();
   if(id==='maj-min') return majMinLadder();
   if(id==='cadence') return cadenceEarLadder();
@@ -2252,10 +2318,10 @@ function renderPractice(){
     App.appendChild(el('div','drill-set','Adapts to your level · feeds the mastery bars below'));
   } else App.appendChild(el('div','callout','Complete at least one lesson to unlock practice drills.'));
   App.appendChild(el('div','track-h','Skills — tap to drill one'));
-  SKILLS.forEach(s=>{ const unlocked=skillUnlocked(s); const lvl=Mastery.level(s.id); const att=Mastery.attempts(s.id);
+  SKILLS.forEach(s=>{ const unlocked=skillUnlocked(s); const st=Mastery.stars(s.id); const att=Mastery.attempts(s.id);
     const row=el('div','skill-row'+(unlocked?'':' locked'));
     const sub = !unlocked? ('Unlocks in Module '+s.module) : (att? Math.round(Mastery.acc(s.id)*100)+'% recent · '+att+' tries' : 'not started yet');
-    row.innerHTML='<div class="si"><b>'+s.name+'</b><span>'+sub+'</span><div class="mastery-bar"><i style="width:'+(lvl/5*100)+'%"></i></div></div>'+stars(lvl);
+    row.innerHTML='<div class="si"><b>'+s.name+'</b><span>'+sub+'</span><div class="mastery-bar"><i style="width:'+(st/5*100)+'%"></i></div></div>'+stars(st);
     if(unlocked) row.onclick=()=>go({view:'drill',skill:s.id});
     App.appendChild(row);
   });
@@ -2271,11 +2337,13 @@ function renderSession(){
   const avail=SKILLS.filter(skillUnlocked);
   const wrap=el('div','lesson'); App.appendChild(wrap);
   if(!avail.length){ wrap.appendChild(el('p',null,'Complete a lesson first to unlock practice.')); return; }
-  const queue=buildSession(12); let i=0; const results={};
+  const queue=buildSession(12); let i=0; const results={}; let lastAns=null;
   const card=el('div','qcard'); wrap.appendChild(card);
   function step(){ card.innerHTML='';
     if(i>=queue.length) return summary();
-    const s=queue[i]; const lvl=Math.max(0,Math.min(5,Mastery.level(s.id))); const q=s.make(lvl);
+    const s=queue[i]; const lvl=Math.max(0,Math.min(5,Mastery.level(s.id)));
+    let q, tries=0; do { q=s.make(lvl); tries++; } while(tries<8 && lastAns!=null && q.choices.length>2 && q.choices[q.answer]===lastAns);
+    lastAns = q.choices.length>2 ? q.choices[q.answer] : null;
     card.appendChild(el('div','qprog','Question '+(i+1)+' of '+queue.length+' · '+s.name));
     const bar=el('div','qbar'); bar.appendChild(el('i')); card.appendChild(bar); bar.firstChild.style.width=(i/queue.length*100)+'%';
     if(q.prompt) card.appendChild(typeof q.prompt==='string'?el('div','qq',q.prompt):q.prompt);
@@ -2298,7 +2366,7 @@ function renderSession(){
     const r=el('div','result'); r.appendChild(el('div','big',Math.round(cor/Math.max(1,tot)*100)+'%'));
     r.appendChild(el('div','lbl',cor+' of '+tot+' correct across '+Object.keys(results).length+' skills')); card.appendChild(r);
     Object.keys(results).forEach(id=>{ const s=skillById(id); const x=results[id];
-      const row=el('div','sess-sum'); row.innerHTML='<span>'+s.name+'</span><span>'+x.c+'/'+x.n+' &nbsp; '+stars(Mastery.level(id))+'</span>'; card.appendChild(row); });
+      const row=el('div','sess-sum'); row.innerHTML='<span>'+s.name+'</span><span>'+x.c+'/'+x.n+' &nbsp; '+stars(Mastery.stars(id))+'</span>'; card.appendChild(row); });
     const again=el('button','btn','Practice again'); again.style.cssText='margin-top:14px;width:100%;'; again.onclick=()=>go({view:'session'}); card.appendChild(again);
     const done=el('button','btn ghost','Back to practice'); done.style.cssText='margin-top:8px;width:100%;'; done.onclick=()=>go({view:'practice'}); card.appendChild(done);
   }
